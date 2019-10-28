@@ -5,5 +5,5 @@ report/*
 build/
 !report/figure/
 !report/hustrep.cls
-!report/main.tex
+!report/*.tex
 !report/main.pdf
