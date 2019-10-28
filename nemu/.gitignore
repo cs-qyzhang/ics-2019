@@ -1,0 +1,11 @@
+*.*
+*
+nemu.log
+*-nemu*
+!*/
+build/
+!Makefile*
+!*.[cSh]
+!.gitignore
+!README.md
+!runall.sh

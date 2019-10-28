@@ -1,0 +1,9 @@
+.nvimrc
+.ycm_extra_conf.py
+*.log
+report/*
+build/
+!report/figure/
+!report/hustrep.cls
+!report/main.tex
+!report/main.pdf

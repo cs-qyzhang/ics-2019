@@ -1,0 +1,11 @@
+#include "isa/watchpoint.h"
+
+const bool M_EAX = 0x01;
+const bool M_ECX = 0x02;
+const bool M_EDX = 0x04;
+const bool M_EBX = 0x08;
+const bool M_ESP = 0x10;
+const bool M_EBP = 0x20;
+const bool M_ESI = 0x40;
+const bool M_EBI = 0x80;
+const bool reg_mask[] = { 0x01, 0x02, 0x04, 0x08, 0x10, 0x20, 0x40, 0x80 };
