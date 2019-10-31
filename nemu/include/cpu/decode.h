@@ -1,3 +1,4 @@
+/* 定义了译码阶段使用的数据结构 */
 #ifndef __CPU_DECODE_H__
 #define __CPU_DECODE_H__
 

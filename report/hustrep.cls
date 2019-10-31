@@ -6,27 +6,43 @@
 %
 
 \NeedsTeXFormat{LaTeX2e}
-\ProvidesClass{hustrep}[2019/10/28 v0.5 HUST Report Class]
+\ProvidesClass{hustrep}[2019/10/28 v0.7 HUST Report Class]
 \LoadClass[a4paper,openright]{book}
 
 % 宏包声明
-\RequirePackage[UTF8,zihao=-4,fontset=none]{ctex}
+\RequirePackage[UTF8,zihao=-4]{ctex}% 加上fontset=none时使用lualatex正文字体会出错
 \RequirePackage{CJKfntef}%汉字居中对齐环境：CJKfilltwosides;汉字下划线：CJKunderline
 \RequirePackage{makecell,array,multirow}
 \RequirePackage{titlesec,graphicx,subcaption,geometry,fancyhdr,xcolor,listings}%
 \RequirePackage{enumitem}%
 \RequirePackage{tikz}
-\RequirePackage{hyperref}
+\RequirePackage[hidelinks]{hyperref}
 \RequirePackage{booktabs}
 \RequirePackage[format=hang,skip=5pt]{caption}
-\RequirePackage{amsthm,amssymb,amsmath,amsfonts,dsfont}
+\RequirePackage{amsthm,amssymb,amsmath,amsfonts}
 \RequirePackage{thmtools}
 \RequirePackage{tcolorbox}
 \RequirePackage[newfloat]{minted}
 \RequirePackage{newfloat}
+\RequirePackage{fontawesome}
 
-% hyperref 配置
-\hypersetup{hidelinks}
+% 字体配置
+\setCJKmainfont[%
+  BoldFont=Source Han Serif CN Bold,%
+  ItalicFont=FZKai-Z03S,%
+  BoldItalicFont=FZCuKaiS-R-GB]{Source Han Serif CN}
+\setCJKsansfont[%
+  BoldFont=Source Han Sans CN Bold,%
+  ItalicFont=FZKai-Z03S,%
+  BoldItalicFont=FZCuKaiS-R-GB]{Source Han Sans CN}
+\setCJKmonofont[%
+  BoldFont=Source Han Sans CN Bold,%
+  ItalicFont=FZKai-Z03S,%
+  BoldItalicFont=FZCuKaiS-R-GB]{Source Han Sans CN}
+\newCJKfontfamily\kai[BoldFont=FZCuKaiS-R-GB]{FZKai-Z03S}
+\newCJKfontfamily\xiaobiaosong[AutoFakeBold]{FZXiaoBiaoSong-B05S}
+\newCJKfontfamily\dabiaosong[AutoFakeBold]{FZDaBiaoSong-B06S}
+\setmainfont{Nimbus Roman}
 
 %字段定义
 \def\hust@class{计算机科学与技术1606班}%
@@ -54,7 +70,8 @@
               {4ex}{\titlerule\vspace{2ex}\filright}
               [\vspace{2ex}\titlerule\clearpage]
   \chapterend%
-  \pagenumbering{arabic}
+  \pagenumbering{arabic}%
+  \pagestyle{main}%
 }
 \let\oldlstlistoflistings\lstlistoflistings
 \renewcommand{\lstlistoflistings}{%
@@ -71,7 +88,8 @@
               {4ex}{\titlerule\vspace{2ex}\filright}
               [\vspace{2ex}\titlerule\clearpage]
   \chapterend%
-  \pagenumbering{arabic}
+  \pagenumbering{arabic}%
+  \pagestyle{main}%
 }
 
 % 页边距设置
@@ -80,28 +98,11 @@
 
 % ctex 配置
 \ctexset{%
-  punct   = quanjiao,%
-  space   = auto,%
-  today   = small%
+  punct      = quanjiao,%
+  space      = auto,%
+  today      = small,%
+  autoindent = true%
 }
-
-% 字体配置
-\setCJKmainfont[%
-  BoldFont=Source Han Serif CN Bold,%
-  ItalicFont=FZKai-Z03S,%
-  BoldItalicFont=FZCuKaiS-R-GB]{Source Han Serif CN}
-\setCJKsansfont[%
-  BoldFont=Source Han Sans CN Bold,%
-  ItalicFont=FZKai-Z03S,%
-  BoldItalicFont=FZCuKaiS-R-GB]{Source Han Sans CN}
-\setCJKmonofont[%
-  BoldFont=Source Han Sans CN Bold,%
-  ItalicFont=FZKai-Z03S,%
-  BoldItalicFont=FZCuKaiS-R-GB]{Source Han Sans CN}
-\newCJKfontfamily\kai[BoldFont=FZCuKaiS-R-GB]{FZKai-Z03S}
-\newCJKfontfamily\xiaobiaosong[AutoFakeBold]{FZXiaoBiaoSong-B05S}
-\newCJKfontfamily\dabiaosong[AutoFakeBold]{FZDaBiaoSong-B06S}
-\setmainfont{Nimbus Roman}
 
 %取消列表项的间距
 \setlist{nosep,labelindent=\parindent,leftmargin=0pt,itemindent=*,listparindent=\parindent}
@@ -121,7 +122,9 @@
 \titleformat{\section}{\raggedright\Large\xiaobiaosong}{\thesection}{1ex}{}
 \titleformat{\subsection}{\raggedright\large\xiaobiaosong}{\thesubsection}{1ex}{}
 \newcommand{\fixedunderline}[2]{\underline{\makebox[#1]{#2}}}%固定长度下划线
+
 \newcommand{\code}[1]{{\texttt{#1}}}
+\newcommand{\file}[1]{{\texttt{#1}}}
 
 % 设置正文页眉页脚
 \setlength{\headheight}{15pt}
@@ -173,7 +176,7 @@
     \end{subfigure}%
   \end{figure}%
   \vspace{1cm}
-  {\dabiaosong\fontsize{30}{36} \makebox[0.65\textwidth][s]{课程实验报告} \par}
+  {\dabiaosong\fontsize{30}{36}\selectfont \makebox[0.65\textwidth][s]{课程实验报告} \par}
   \vfill
   {\LARGE\xiaobiaosong 课程名称：\fixedunderline{9cm}{\makebox[7cm][s]{\@title}}\par}
   \vfill
@@ -183,18 +186,18 @@
   {\large\xiaobiaosong 专业班级：\fixedunderline{7cm}{\hust@class}}\par\vspace{2ex}
   {\large\xiaobiaosong 指导教师：\fixedunderline{7cm}{\makebox[5em][s]{\hust@teacher}}}\par\vspace{2ex}
   \vfill
-  \hspace*{18em}
-  \renewcommand\arraystretch{2}
-  \begin{tabular}{|c|p{8em}|}
-    \hline
-    分数     & \\
-    \hline
-    教师签名 & \\
-    \hline
-  \end{tabular}
+  \hspace*{15em}
+  \begin{tikzpicture}[every node/.style={minimum height=3em,line width=.8pt}]
+    \node[minimum width=6em] at (0,0)             (1) {分数};
+    \node[minimum width=6em,below=0pt of 1]       (2) {教师签名};
+    \node[minimum width=8em,right=0pt of 1]       (3) {};
+    \node[minimum width=8em,right=0pt of 2]       (4) {};
+    \draw (1.north west) rectangle (4.south east);
+    \draw (1.south west) -- (4.north east);
+    \draw (1.north east) -- (4.south west);
+  \end{tikzpicture}
   \vfill
   {\large\bfseries\today}
-  \renewcommand\arraystretch{1.3}
   \end{titlepage}%
   \chapterend%
   \pagestyle{plain}%
@@ -224,22 +227,6 @@
 
 % 带圈数字定义
 \newcommand\circled[1]{{\large \textcircled{\small #1}}}%
-
-%tikz样式定义
-\usetikzlibrary{calc,decorations.pathmorphing,positioning,backgrounds,fit,arrows,shapes.geometric,graphs,intersections}
-\tikzstyle{mealystate}=[fill=blue!20,font=\ttfamily\small,draw=blue!50,minimum size=3em,inner sep=3pt,circle]
-\tikzstyle{moorestate}=[fill=blue!20,font=\ttfamily\small,draw=blue!50,minimum size=1em,inner sep=5pt,circle split]
-\tikzstyle{trans}=[->]
-\tikzstyle{startstop}=[rectangle,rounded corners=5pt,minimum width=4em,inner sep=0.5em,text centered,align=center,draw=black,fill=blue!20]
-\tikzstyle{io}=[trapezium,trapezium left angle=70,trapezium right angle=110,minimum width=4em,inner sep=0.5em,text centered,draw=black,fill=blue!20]
-\tikzstyle{process}=[rectangle,minimum width=4em,inner sep=0.5em,text centered,draw=black,fill=blue!20]
-\tikzstyle{decision}=[diamond,shape aspect=2,minimum width=6em,inner sep=3pt,text centered,draw=black,fill=blue!20]
-\tikzstyle{yesno}=[auto,near start]
-\tikzstyle{middle}=[circle,minimum size=1em,inner sep=0.5em,draw=black,fill=blue!20]
-\tikzset{%
-  line width=1pt,%
-  >=stealth%
-}
 
 % 设置表格间距
 \renewcommand\arraystretch{1.3}
@@ -346,4 +333,116 @@
   overlay={\begin{tcbclipinterior}\fill[gray!25] (frame.south west)
             rectangle ([xshift=5mm]frame.north west);\end{tcbclipinterior}},
   #1
+}
+
+\newcommand*\keystroke[1]{%
+  \tikz[baseline=(key.base)]
+    \node[%
+      draw=white!20!gray!10,
+      fill=lightgray!80,
+      drop shadow={shadow xshift=0.25ex,shadow yshift=-0.25ex,fill=lightgray,opacity=0.4},
+      rectangle,
+      rounded corners=2pt,
+      inner sep=1pt,
+      line width=0.5pt,
+      font=\scriptsize\sffamily
+    ](key) {#1\strut}
+  ;
+}
+
+\definecolor{crimson}{rgb}{0.86, 0.08, 0.24}
+% https://tex.stackexchange.com/a/340935
+\newtcolorbox{mybox}[4][]{%
+  enhanced,
+  breakable,
+  colback=#2!5,
+  colframe=#2,
+  attach boxed title to top left={yshift=-2pt}, title={\hspace*{.5mm} #3},
+  boxrule=0pt,
+  size=title,
+  top=1.5mm,
+  bottom=1.5mm,
+  boxed title style={%
+    sharp corners,
+    rounded corners=northwest,
+    colback=tcbcolframe,
+    top=3pt,
+    bottom=3pt,
+    boxrule=0pt
+  },
+  sharp corners=north,
+  overlay unbroken={%
+    \path[fill=tcbcolframe]
+      (title.south east)
+      to[out=0, in=180] ($(title.east)+(1cm,0.25cm)$)--
+      ($(title.east-|frame.north east)+(0,0.25cm)$) [rounded corners=\kvtcb@arc] |- ([xshift=-1pt]title.north east);
+    \path[fill=tcbcolback]
+      (title.south east)
+      to[out=0, in=180] ($(title.east)+(1cm,0.25cm)$)--
+      ($(title.east-|frame.north east)+(0,0.25cm)$) |- (title.south east);
+    \path[draw=tcbcolframe,line width=0.4mm]
+      ([yshift=-3pt,xshift=-0.2mm]frame.north east) --
+      ($(title.east-|frame.north east)+(-0.2mm,0.26cm)$);
+    \foreach \x in {10,20,...,100}
+      \path[opacity=\x*0.01,line width=1.1pt,draw=gray!\x]
+        ($([xshift=.4mm]title.south west)+(0,\x/100pt-1.1pt)$) --
+        ($(title.south east)+(0,\x/100pt-1.1pt)$) to[out=0, in=180]
+        ($(title.east)+(1cm,0.25cm+\x/100pt-1.1pt)$) --
+        ($(title.east-|frame.north east)+(-0.4mm,0.25cm+\x/100pt-1.1pt)$);
+    \path[draw=white,line width=1.1pt]
+      ([xshift=.4mm]title.south west) -- (title.south east) to[out=0, in=180] ($(title.east)+(1cm,0.25cm)$)--
+      ($(title.east-|frame.north east)+(-0.4mm,0.25cm)$);
+    \node[anchor=south east,minimum height=20pt,inner xsep=5pt] at ([yshift=-5pt]frame.north east)
+      {\color{tcbcolframe} #4 \hspace*{1.5mm}};
+    \draw[line width=.4mm, rounded corners=\kvtcb@arc, 
+      tcbcolframe] 
+      (title.north west) rectangle 
+      (frame.south east);
+  },
+  overlay first={%
+    \path[fill=tcbcolframe]
+      (title.south east)
+      to[out=0, in=180] ($(title.east)+(1cm,0.25cm)$)--
+      ($(title.east-|frame.north east)+(0,0.25cm)$) [rounded corners=\kvtcb@arc] |- ([xshift=-1pt]title.north east);
+    \path[fill=tcbcolback]
+      (title.south east)
+      to[out=0, in=180] ($(title.east)+(1cm,0.25cm)$)--
+      ($(title.east-|frame.north east)+(0,0.25cm)$) |- (title.south east);
+    \path[draw=tcbcolframe,line width=0.4mm]
+      ([yshift=-3pt,xshift=-0.2mm]frame.north east) --
+      ($(title.east-|frame.north east)+(-0.2mm,0.26cm)$);
+    \foreach \x in {10,20,...,100}
+      \path[opacity=\x*0.01,line width=1.1pt,draw=gray!\x]
+        ($([xshift=.4mm]title.south west)+(0,\x/100pt-1.1pt)$) --
+        ($(title.south east)+(0,\x/100pt-1.1pt)$) to[out=0, in=180]
+        ($(title.east)+(1cm,0.25cm+\x/100pt-1.1pt)$) --
+        ($(title.east-|frame.north east)+(-0.4mm,0.25cm+\x/100pt-1.1pt)$);
+    \path[draw=white,line width=1.1pt]
+      ([xshift=.4mm]title.south west) -- (title.south east) to[out=0, in=180] ($(title.east)+(1cm,0.25cm)$)--
+      ($(title.east-|frame.north east)+(-0.4mm,0.25cm)$);
+    \node[anchor=south east,minimum height=20pt,inner xsep=5pt] at ([yshift=-5pt]frame.north east)
+      {\color{tcbcolframe} #4 \hspace*{1.5mm}};
+    \draw[line width=.4mm, rounded corners=\kvtcb@arc, 
+      tcbcolframe] 
+      (frame.south west) |- (title.north) -| 
+      (frame.south east);
+  },
+  overlay middle={%
+    \draw[line width=.4mm, tcbcolframe] 
+    (frame.north west)--(frame.south west) 
+    (frame.north east)--(frame.south east);
+  },
+  overlay last={%
+    \draw[line width=.4mm, rounded corners=\kvtcb@arc, 
+      tcbcolframe] 
+      (frame.north west) |- (frame.south) -|
+      (frame.north east);
+  },
+  #1
+}
+
+\newcommand{\bugbox}[2]{%
+  \begin{mybox}{crimson}{\faBug\ \faBug\ \faBug}{\file{#1}}%
+    #2%
+  \end{mybox}%
 }

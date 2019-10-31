@@ -1,3 +1,4 @@
+/* 调试器中监视点有关 */
 #ifndef __WATCHPOINT_H__
 #define __WATCHPOINT_H__
 

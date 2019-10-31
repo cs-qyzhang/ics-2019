@@ -1,2 +1,98 @@
 \chapter{硬件平台---NEMU}
+\section{前言}
+编写虚拟机的第一个任务就是去实现其硬件设施。根据冯诺伊曼计算机的思想，一个完整的
+计算设备需要有运算器、控制器、存储器、输入设备和输出设备，而本章介绍的NEMU就是
+去实现这五大部件。
+
+在今年，南京大学的NEMU项目进行了扩展，使NEMU提供了三种指令集架构可供选择。一个指令
+集架构约定了指令的编码方式以及运算器和控制器的解码及执行方式。在NEMU中提供了三种
+指令集架构，分别是：\emph{x86}，\emph{mips32}和\emph{riscv32}。在这里我选择的是
+日常使用中最常见的\emph{x86}架构。
+
+\section{系统设计与实现}
+下面我们就正式进入冯诺伊曼机NEMU的设计与实现。
+
+\subsection{NEMU总体架构}
+由于NEMU模拟器是一个冯诺伊曼机，所以其整体架构遵循冯诺伊曼机。NEMU的总体架构图
+如图\ref{fig:nemu-arch}所示。
+
+\vspace{5pt}
+\hustfigure[0.9\textwidth]{figure/nemu-arch.pdf}{NEMU总体架构图}{fig:nemu-arch}
+
+\subsection{框架代码结构}
+\dirtree{%
+  .1 nemu/.
+  .2 include/.
+  .3 cpu/.
+  .3 device/.
+  .3 memory/\DTcomment{内存访问有关}.
+  .3 monitor/\DTcomment{监视器有关}.
+  .3 rtl/\DTcomment{通用rtl指令定义}.
+  .3 common.h\DTcomment{公用头文件}.
+  .3 debug.h.
+  .3 macro.h.
+  .3 nemu.h.
+  .2 src/.
+  .3 cpu/\DTcomment{CPU执行有关}.
+  .3 device/\DTcomment{IO设备实现}.
+  .3 isa/\DTcomment{指令集架构封装}.
+  .4 mips32/\DTcomment{mips32指令集}.
+  .4 riscv32/\DTcomment{riscv32指令集}.
+  .4 x86/\DTcomment{x86指令集}.
+  .3 memory/\DTcomment{内存访问实现}.
+  .3 monitor/.
+  .4 debug/\DTcomment{调试器实现}.
+  .5 expr/\DTcomment{表达式解析}.
+  .6 def.h\DTcomment{表达式解析有关函数定义}.
+  .6 lex.l\DTcomment{表达式解析词法规则定义}.
+  .6 parser.y\DTcomment{表达式解析语法规则定义}.
+  .5 log.c\DTcomment{Log信息输出}.
+  .5 ui.c\DTcomment{监视器交互命令实现}.
+  .5 watchpoint.c\DTcomment{监视点实现}.
+  .4 diff-test/.
+  .4 cpu-exec.c.
+  .4 monitor.c.
+  .3 main.c.
+  .2 tools/\DTcomment{测试及调试用工具}.
+  .2 Makefile.
+  .2 Makefile.git\DTcomment{git版本控制相关}.
+  .2 runall.sh\DTcomment{一键测试脚本}.
+}
+
+\subsection{NEMU执行流}
+为了能够了解NEMU的工作方式，我们来看看NEMU整体的一个执行流程。
+
+进入\file{nemu/src/main.c}文件，能够看到里面定义了\code{main()}函数。在\code{main()}
+函数中只有两行，第一行调用\code{init\_monitor()}函数对NEMU进行各项初始化，并根据
+调用参数来判断本次程序运行是否是批处理模式。第二行调用\code{ui\_mainloop()}函数。
+\code{ui\_mainloop()}函数在\file{nemu/src/monitor/debug/ui.c}中定义，该函数是
+监视器与用户进行IO交互的主函数。在该函数中首先判断程序是否是批处理模式，若是
+批处理模式则直接运行在命令行中指定的程序，不会出现与用户的交互界面。若不是批处理
+模式则会进行循环，在循环体中首先等待用户的命令，之后根据用户所输入的命令调用相应的
+处理函数。
+
+由此我们可以得到NEMU的总体流程图，如图\ref{fig:nemu-flowchart}所示。
+
+\begin{figure}[!htbp]
+\centering
+\begin{autoflow}
+begin
+初始化NEMU
+if (批处理模式?)
+{
+  运行程序
+}
+else
+{
+  input 命令
+  while (非终止命令?)
+  {
+    执行命令
+    input 命令
+  }
+}
+end
+\end{autoflow}
+\caption{NEMU整体流程图}\label{fig:nemu-flowchart}  
+\end{figure}
 

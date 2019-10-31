@@ -1,3 +1,4 @@
+/* IO地址映射有关内容 */
 #ifndef __MAP_H__
 #define __MAP_H__
 

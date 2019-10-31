@@ -1,3 +1,4 @@
+/* 定义了执行阶段使用的数据结构和一些函数 */
 #ifndef __CPU_EXEC_H__
 #define __CPU_EXEC_H__
 

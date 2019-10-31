@@ -1,0 +1,142 @@
+%
+% hustrep.cls
+% 华中科技大学报告模板
+% 
+% Created in 2018/9/22 by 张丘洋
+%
+
+\RequirePackage{makeshape,tikz,xcolor}
+
+\usetikzlibrary{positioning,calc,backgrounds,fit,arrows,shapes.geometric,graphs,intersections}
+\tikzstyle{fill color}=[fill=blue!20]
+\tikzstyle{startstop}=[rectangle,rounded corners=5pt,inner sep=0.5em,text centered,align=center,draw=black,fill color]
+\tikzstyle{io}=[trapezium,trapezium left angle=68.2,trapezium right angle=111.8,inner sep=0.5em,text centered,draw=black,fill color]
+\tikzstyle{process}=[rectangle,inner sep=0.5em,text centered,draw=black,fill color]
+\tikzstyle{decision}=[conditions,inner sep=3pt,text centered,draw=black,fill color]
+\tikzset{%
+  line width=1pt,%
+  >=stealth,%
+  font=\ttfamily,%
+  node distance=30pt%
+}
+
+% decision形状定义
+\def\decisionrefout{
+  \pgf@xa=\ctbnex
+  \pgf@ya=\ctbney
+  \pgf@xb=\ctbnex
+  \pgf@yb=\ctbney
+
+  \let\addy=\pgf@xb
+  \divide\addy by 2
+  \let\addx=\pgf@yb
+  \multiply\addx by 2
+
+  \advance\pgf@xa by \addx
+  \mincorrect{\pgf@xa}{\pgfshapeminwidth}
+  \advance\pgf@xa by \pgfshapeouterxsep
+
+  \advance\pgf@ya by \addy
+  \mincorrect{\pgf@ya}{\pgfshapeminheight}
+  \advance\pgf@ya by \pgfshapeouterysep
+}
+\def\decisionref{
+  \pgf@xa=\ctbnex
+  \pgf@ya=\ctbney
+  \pgf@xb=\ctbnex
+  \pgf@yb=\ctbney
+
+  \let\addy=\pgf@xb
+  \divide\addy by 2
+  \let\addx=\pgf@yb
+  \multiply\addx by 2
+
+  \advance\pgf@xa by \addx
+  \mincorrect{\pgf@xa}{\pgfshapeminwidth}
+  \advance\pgf@ya by \addy
+  \mincorrect{\pgf@ya}{\pgfshapeminheight}
+}
+\def\decisionpath{
+  \def\refx{\pgf@xa}
+  \def\refy{\pgf@ya}
+  \pgfpathmoveto{\pgfpoint{0}{\refy}}
+  \pgfpathlineto{\pgfpoint{\refx}{0}}
+  \pgfpathlineto{\pgfpoint{0}{-\refy}}
+  \pgfpathlineto{\pgfpoint{-\refx}{0}}
+  \pgfpathclose
+}
+\def\decisionanchor{
+  \decisionrefout
+  \decisionpath
+}
+\def\decisionborder{
+  \decisionref
+  \decisionpath
+}
+\pgfdeclareshape{conditions}{
+  \setpaths{\decisionanchor}{\decisionborder}
+
+  \savedanchor{\north}{
+    \decisionrefout
+    \pgf@x = 0pt
+    \pgf@y = \pgf@ya
+  }
+
+  \savedanchor{\east}{
+    \decisionrefout
+    \pgf@x = \pgf@xa
+    \pgf@y = 0pt
+  }
+
+  \savedanchor{\northeast}{
+    \decisionrefout
+    \pgf@x = \pgf@xa
+    \pgf@y = \pgf@ya
+  }
+
+  \anchor{north}{ \north }
+  \anchor{north east}{ \northeast }
+  \anchor{east}{ \east }
+  \anchor{south east}{ \northeast \pgf@y=-\pgf@y }
+  \anchor{south}{ \north \pgf@y=-\pgf@y }
+  \anchor{south west}{ \northeast \pgf@x=-\pgf@x \pgf@y=-\pgf@y }
+  \anchor{west}{ \east \pgf@x=-\pgf@x }
+  \anchor{north west}{ \northeast \pgf@x=-\pgf@x }
+}
+
+% autoflow 环境定义
+\begingroup
+  \catcode `| = 0 %
+  \catcode `[ = 1 %
+  \catcode `] = 2 %
+  \catcode `\{ = 12 %
+  \catcode `\} = 12 %
+  \catcode `\\ = 12 %
+  |gdef|@xautoflow#1\end{autoflow}%
+    [|autoflowpayload[#1]|end[autoflow]|autoflowdraw]%
+|endgroup
+\def\autoflow{%
+  \let\do\@makeother
+  \dospecials
+  \obeylines
+  \obeyspaces
+  \@xautoflow
+}
+\def\endautoflow{}
+\def\autoflowpayload#1{%
+  \directlua{%
+draw_buf = [[#1]];
+  }%
+}
+\def\autoflowdraw{%
+  \directlua{%
+local tmpname = os.tmpname();
+local tmpfile = io.open(tmpname, 'w+');
+tmpfile:write(draw_buf);
+tmpfile:close();
+local f = io.popen("./autoflow/autoflow "..tmpname);
+for line in f:lines() do
+  tex.print(line);
+end
+  }%
+}

@@ -1,3 +1,4 @@
+/* Difftest 工具相关 */
 #ifndef __DIFF_TEST_H__
 #define __DIFF_TEST_H__
 

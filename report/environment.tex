@@ -1,0 +1,10 @@
+\chapter{开发环境}
+\section{硬件配置}
+
+
+\section{软件配置}
+\begin{luacode}
+env = require("sysenv")
+local cmds = {"gcc", "nvim", "ld", "python"}
+env.print_sysversion(cmds)
+\end{luacode}
