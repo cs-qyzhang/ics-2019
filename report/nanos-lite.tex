@@ -1,14 +1,1 @@
 \chapter{操作系统---nanos-lite}
-\begin{codes}{C}{test}{lst:test}
-#include <stdio.h>
-
-int main(void) {
-  printf("hello, world!\n");
-  return 0;
-}
-\end{codes}
-
-\bugbox{nemu/src/monitor/debug/expr/expr\_def.h}{
-  解码帮助函数\code{decode\_op\_SI ()}没写对，导致后面and指令取操作数时8位立即数没有扩展，
-  写错的原因是没有认清\code{rtl\_sext ()}函数的width参数指的是要扩展的数的原始位数。
-}

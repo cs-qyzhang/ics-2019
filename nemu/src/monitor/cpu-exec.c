@@ -46,7 +46,7 @@ void cpu_exec(uint64_t n) {
      * instruction decode, and the actual execution. */
     __attribute__((unused)) vaddr_t seq_pc = exec_once();
 
-#if defined(DIFF_TEST)
+#ifdef DIFF_TEST
     difftest_step(ori_pc, cpu.pc);
 #endif
 

@@ -362,6 +362,8 @@
   size=title,
   top=1.5mm,
   bottom=1.5mm,
+  before skip=10pt,
+  after skip=10pt,
   boxed title style={%
     sharp corners,
     rounded corners=northwest,

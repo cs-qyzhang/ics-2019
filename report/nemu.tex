@@ -7,17 +7,18 @@
 在今年，南京大学的NEMU项目进行了扩展，使NEMU提供了三种指令集架构可供选择。一个指令
 集架构约定了指令的编码方式以及运算器和控制器的解码及执行方式。在NEMU中提供了三种
 指令集架构，分别是：\emph{x86}，\emph{mips32}和\emph{riscv32}。在这里我选择的是
-日常使用中最常见的\emph{x86}架构。
+日常使用中最常见的\arch 架构。
 
 \section{系统设计与实现}
-下面我们就正式进入冯诺伊曼机NEMU的设计与实现。
+下面我们就正式进入冯诺伊曼机NEMU的设计与实现。由于NEMU源文件较多，为了能够更好的
+叙述设计和实现，这里采用自顶向下的方式来阐述。
 
 \subsection{NEMU总体架构}
 由于NEMU模拟器是一个冯诺伊曼机，所以其整体架构遵循冯诺伊曼机。NEMU的总体架构图
 如图\ref{fig:nemu-arch}所示。
 
 \vspace{5pt}
-\hustfigure[0.9\textwidth]{figure/nemu-arch.pdf}{NEMU总体架构图}{fig:nemu-arch}
+\hustfigure[0.85\textwidth]{figure/nemu-arch.pdf}{NEMU总体架构图}{fig:nemu-arch}
 
 \subsection{框架代码结构}
 \dirtree{%
@@ -42,7 +43,7 @@
   .3 memory/\DTcomment{内存访问实现}.
   .3 monitor/.
   .4 debug/\DTcomment{调试器实现}.
-  .5 expr/\DTcomment{表达式解析}.
+  .5 expr/\DTcomment{表达式解析{\color{red}(这里与给定的框架代码不同，是个人修改的)}}.
   .6 def.h\DTcomment{表达式解析有关函数定义}.
   .6 lex.l\DTcomment{表达式解析词法规则定义}.
   .6 parser.y\DTcomment{表达式解析语法规则定义}.
@@ -96,3 +97,69 @@ end
 \caption{NEMU整体流程图}\label{fig:nemu-flowchart}  
 \end{figure}
 
+在NEMU的交互界面中，一共设定了九个命令，这些命令对应的字符串以及其含义如表\ref{tab:nemu-cmd}
+所示。
+
+\begin{table}[!htpb]
+  \centering
+  \caption{NEMU调试器指令}
+  \label{tab:nemu-cmd}
+  \begin{tabular}{ccc}
+    \toprule
+    \textbf{命令名称}& \textbf{命令描述}      & \textbf{处理函数}        \\
+    \midrule
+    help      & 显示帮助        & \code{cmd\_help()}\\
+    c         & 继续运行程序    & \code{cmd\_c()}   \\
+    q         & 退出NEMU        & \code{cmd\_q()}   \\
+    p expr    & 打印表达式值    & \code{cmd\_p()}   \\
+    info r    & 打印寄存器信息  & \code{cmd\_info()}\\
+    info w    & 打印监视点信息  & \code{cmd\_info()}\\
+    w         & 添加监视点      & \code{cmd\_w()}   \\
+    d         & 删除监视点      & \code{cmd\_d()}   \\
+    s         & 单步执行        & \code{cmd\_s()}   \\
+    \bottomrule
+  \end{tabular}
+\end{table}
+
+在这些命令中，最重要的就是\emph{c}命令，该命令使程序继续运行，在没有设置监视点的
+情况下输入\emph{c}命令会使程序一直执行到结束为止。下面我们就来看看\emph{c}命令
+的实现。
+
+\subsection{NEMU内程序运行流程}
+\emph{c}命令的执行函数是\code{cmd\_c()}，该函数在\file{nemu/src/monitor/debug/ui.c}
+中定义，该函数的函数体只有一行，即\code{cpu\_exec(-1)}。这个函数在文件
+\file{nemu/src/monitor/cpu-exec.c}中定义，该函数有一个参数，这个参数代表了要执行
+的虚拟机程序的指令条数。在\code{cmd\_c()}中传入的参数值是-1，由于参数值是按照无符号
+数来解析的，所以-1会被认为是最大的整数，也就是说想让程序一直执行直到程序退出为止。
+
+\bugbox{nemu/src/monitor/cpu-exec.c}{%
+  虽然一般情况下程序的指令数量都不会超过最大整数的值，但如果超过了那么就会发生
+  错误。为了解决这个可能会出现的问题，我们可以在\code{cpu-exec()}函数中做一点修改，
+  只要让当参数值为最大整数(也就是-1)时一直运行即可，可以把\code{for}循环中更新
+  部分的\code{n-\/-}变为\code{(n == (uint64\_t)-1) ? n : n -\/-}。
+}
+
+继续观察\code{cpu-exec()}函数，该函数使用了状态机来判断虚拟机的运行状态，我们可以
+先不管。函数内主体是一个\code{for}循环，在循环体内首先记录下旧的\pc 值，之后
+调用\code{exec\_once()}函数，从这个函数的名字和出现的位置我们可以推断出来这个函数
+的功能是让虚拟机执行下一条指令。执行了一条指令之后就继续进入下一个循环(可以先忽略
+掉条件编译部分)。
+
+接下来我们就需要去看看\code{exec\_once()}函数了。这个函数在文件\file{nemu/src/cpu/cpu.c}
+中定义，函数体也比较简单，先调用\code{isa\_exec()}函数再调用了\code{update\_pc()}函数。
+由于NEMU代码框架中定义了三种指令集架构，对于每一种架构来说其执行指令的过程都是不同
+的，所以能够看出来\code{isa\_exec()}函数的存在是为了屏蔽掉不同架构带来的差异，
+相当于一个接口，不同的架构只需要实现这个接口就可以达到架构无关的目的。\code{update\_pc()}
+函数从名字上就能看出来是更新指令计数器\pc 的值。
+
+下面我们就要进入到\code{isa\_exec()}函数内看看了。由于这个接口对于不同的架构来说
+实现是不同的，因为本次选择的架构是\arch，所以我们就要去看\arch 下的实现。打开文件
+\file{\archpath/exec/exec.c}，在文件的末尾定义了\code{isa\_exec()}函数。在该函数体
+中，首先通过\code{instr\_fetch()}函数取出一个字节的opcode，并设置好\code{decinfo}
+全局译码结构相关的成员，之后调用了一次\code{set\_width()}函数，最后调用\code{idex()}
+函数。
+
+看到这里你可能会感觉有点懵，按理来说让CPU执行一条指令应该先从\pc 处取出一条指令，
+之后对这个指令进行解码执行即可，为什么这里取出指令的长度只有一个字节？这里的
+\code{set\_width()}函数又是有什么作用呢？要解决这个问题就要涉及到\arch 架构指令
+的编码方式了。
