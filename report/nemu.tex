@@ -43,7 +43,7 @@
   .3 memory/\DTcomment{内存访问实现}.
   .3 monitor/.
   .4 debug/\DTcomment{调试器实现}.
-  .5 expr/\DTcomment{表达式解析{\color{red}(这里与给定的框架代码不同，是个人修改的)}}.
+  .5 expr/\DTcomment{表达式解析{\color{red}(这里与给定的框架代码不同)}}.
   .6 def.h\DTcomment{表达式解析有关函数定义}.
   .6 lex.l\DTcomment{表达式解析词法规则定义}.
   .6 parser.y\DTcomment{表达式解析语法规则定义}.
@@ -136,7 +136,7 @@ end
   虽然一般情况下程序的指令数量都不会超过最大整数的值，但如果超过了那么就会发生
   错误。为了解决这个可能会出现的问题，我们可以在\code{cpu-exec()}函数中做一点修改，
   只要让当参数值为最大整数(也就是-1)时一直运行即可，可以把\code{for}循环中更新
-  部分的\code{n-\/-}变为\code{(n == (uint64\_t)-1) ? n : n -\/-}。
+  部分的\code{n-\/-}变为\code{(n == (uint64\_t)-1) ? n : n-\/-}。
 }
 
 继续观察\code{cpu-exec()}函数，该函数使用了状态机来判断虚拟机的运行状态，我们可以
@@ -163,3 +163,161 @@ end
 之后对这个指令进行解码执行即可，为什么这里取出指令的长度只有一个字节？这里的
 \code{set\_width()}函数又是有什么作用呢？要解决这个问题就要涉及到\arch 架构指令
 的编码方式了。
+
+\subsection{\arch 架构指令编码}
+现在我们已经根据\emph{c}命令的执行过程来到了\arch 架构的指令执行函数，为了继续进行
+我们需要知道\arch 架构指令的编码方式。
+
+\arch 的指令编码格式如图\ref{fig:isa-instr-format}所示，每个域的作用如表\ref{tab:x86-instr-format}所示。
+
+\hustfigure[0.8\textwidth]{figure/x86-instruction-format.pdf}{\arch 指令编码格式}{fig:isa-instr-format}
+
+\begin{table}[!htpb]
+  \centering
+  \caption{\arch 指令域及其作用}
+  \label{tab:x86-instr-format}
+  \begin{tabular}{ccc}
+    \toprule
+    \textbf{域名}              & \textbf{作用}                      & \textbf{字节数}    \\
+    \midrule
+    instruction prefix  & 改变指令行为 (如\code{REP}) & 0或1        \\
+    address-size prefix & 改变地址位宽                & 0或1        \\
+    operand-size prefix & 改变操作数大小              & 0或1        \\
+    segment override    & 改变寻址使用的段寄存器      & 0或1        \\
+    opcode              & 指令操作码                  & 1或2        \\
+    modr/m              & \multirow{2}*{指定寻址方式} & 0或1        \\
+    sib                 &                             & 0或1        \\
+    displacement        & 内存寻址偏移                & 0, 1, 2或4  \\
+    immediate           & 立即数                      & 0, 1, 2或4  \\
+    \bottomrule
+  \end{tabular}
+\end{table}
+
+能够看到在编码格式中包含了很多部分，并且前面有很多部分都是可有可无的。
+
+我们先从简单的来说起。在这些域中，必须存在的就是\emph{opcode}部分。\emph{opcode}
+可以理解为operation code，也就是操作码，它代表了这条指令的功能，可以说是指令的
+id，不同的指令其\emph{opcode}是不同的。举一个最简单的例子，对于\arch 指令
+\code{PUSH EAX}来说，该指令仅有一个字节也就是\emph{opcode}，为\emph{0x50}。
+你可能会问，\emph{opcode}域不是可以有两个字节吗？我们怎么在译码的时候知道这个\emph{opcode}
+是一个字节还是两个字节呢？事实上，由于一个字节只有256个值，而对于\arch 这样的CISC
+架构是不够的，为了能够拥有更多的指令，\arch 采用了变长编码，将\code{0x0F}作为转义
+字节，也就是说当第一个\emph{opcode}是\code{0x0F}是就代表这个\emph{opcode}有两位，
+类似于赫夫曼编码。比如，\code{SETO}指令是当OF标志位为1时将对应的操作符设为1，这个
+指令的\emph{opcode}是\code{0x0F 0x90}。
+
+之后我们来看看\emph{opcode}之前的域。\emph{opcode}之前的域都是可有可无的，当这些
+域中的某一个存在时，就会改变这条指令的行为。比如如果存在operand-size prefix域，
+那么原本一条指令操作数的位宽就会从32位变为16位。这样就会有一个问题，当我们进行
+译码时，怎么知道这些域存不存在呢？事实上\emph{opcode}前面的这些域与\emph{opcode}
+包含的所有编码都是两两不同的，比如operand-size prefix域要是存在的话只能
+是\code{0x66}，而\emph{opcode}域的编码并不包含\code{0x66}，所以在译码时就能够根据
+当前这个字节的值来判断这个字节是代表着\emph{opcode}域还是其之前的某个域。上面指出
+了\code{PUSH EAX}指令的编码为\code{0x50}，而我们又知道\code{0x66}代表着operand-size
+prefix域，所以编码\code{0x66 0x50}就代表着\code{PUSH AX}，即将操作数从32位的\code{EAX}
+变为了16位的\code{AX}。
+
+在\emph{opcode}之后是\emph{modr/m}和\emph{sib}域。这两个域可以说是\arch 编码的
+精华，在这两个域中包含了以下信息：
+\begin{itemize}
+  \item 寻址方式或是要使用的寄存器
+  \item 需要用到的寄存器，或是指定指令行为的信息
+  \item 基址、变址以及比例因子信息
+\end{itemize}
+
+总的来说，这两个域说明了这个指令要怎样去找到操作数。比如对于\code{MOV}指令，这个
+指令的功能是将数据从一个地方复制到另一个地方，操作数可能在两个寄存器中，可能都在
+内存中，也可能一个在寄存器一个在内存中。\emph{modr/m}和\emph{sib}域就指定了这条
+\code{MOV}指令的两个操作数到底在哪，如果在寄存器中会说明在哪个寄存器，如果是在
+内存中会说明内存的寻址方式以及寻址的基址、变址寄存器等信息。
+
+\emph{modr/m}和\emph{sib}各自都有8位，他们各自又将这8位划分成了三个部分，如图\ref{fig:modrm-sib}
+所示。
+
+\hustfigure[0.5\textwidth]{figure/modrm-sib.pdf}{\emph{modr/m}和\emph{sib}域的划分}{fig:modrm-sib}
+
+% TODO
+对于\emph{modr/m}和\emph{sib}的具体编码详见\cite{i386-manual}。
+
+最后还有\emph{displacement}和\emph{immediate}域，这两个域比较简单，\emph{displacement}
+域代表了内存寻址时的偏移，要和\emph{modr/m}以及\emph{sib}配合使用。而\emph{immediate}
+域则是代表了立即数，是否存在该域要看具体的\emph{opcode}。
+
+\subsection{\arch 译码实现}
+在大致知道了\arch 指令的编码方式之后，我们就能够进行译码的实现。再次回到\code{isa\_exec()}
+函数，在函数体中首先在\pc 处取出一个字节，这时我们大概能够推断出取出的这一个字节
+是\emph{opcode}(当然也有可能是\emph{opcode}前面的那些域，我们后面再来说明如果是
+前缀域要怎么办)，取出了\emph{opcode}之后调用了一次\code{set\_width()}函数，从函数名字
+来看这个函数是设置宽度，能够推断出这个函数的大概作用是设置操作数的宽度，我们先忽略
+掉，之后就调用了\code{idex()}函数。\code{idex()}在名字上能够看出来是id和ex，其中
+id指的是instruction decode，即指令译码，ex指的是execute，也就是指令执行。那么\code{idex()}
+的作用我们能推断出是译码以及执行的意思了。
+
+虽然大概知道了\code{isa\_exec()}函数的执行流程，但还是很不清晰，还是不了解\code{set\_width()}
+的具体实现，以及译码时\emph{opcode}之前的域和之后的域都是怎么推断出来的。
+
+为了对译码部分的实现有更清晰的认识，我们进入到\code{idex()}里面看看其是怎么执行的。
+\code{idex()}函数在\file{nemu/include/cpu/exec.h}中定义，函数也非常简单，有两个
+参数，一个是\pc 我们很好理解，另一个是\code{OpcodeEntry}结构指针。在函数体内先判断
+\code{OpcodeEntry}是否存在一个名为\code{decode}的函数指针，如果存在则调用该函数。
+之后调用\code{OpcodeEntry}下名为\code{execute()}的函数。也就是说，在\code{idex()}
+函数中只是简单地调用了这个指令对应的\code{decode()}函数以及\code{execute()}函数。
+这里比较重要的是\code{OpcodeEntry}这个参数，能够看到这个参数中包含了对应指令的
+译码及运行的实现函数指针。我们回到\code{isa\_exec()}函数，发现这个\code{OpcodeEntry}
+参数传入的值是\code{\&opcode\_table[opcode]}。那么我们就看看\code{opcode\_table}是
+一个什么数组。进入文件\file{\archpath/exec/exec.c}，能够看到在这个文件里用很长的
+代码定义了静态数组\code{opcode\_table}，这个数组的类型就是\code{OpcodeEntry}。
+而\code{OpcodeEntry}结构在\code{nemu/include/cpu/exec.h}中定义，其定义为：
+\begin{codes*}{C}
+typedef void (*EHelper) (vaddr_t *);
+typedef void (*DHelper) (vaddr_t *);
+typedef struct {
+  DHelper decode;
+  EHelper execute;
+  int width;
+} OpcodeEntry;
+\end{codes*}
+
+能够看到该结构只有三个成员，一个是\code{decode}函数指针，一个是\code{execute}函数
+指针，另一个是\code{width}。根据\code{OpcodeEntry}的名字以及其成员和出现的位置
+我们能够知道，这个结构的含义是指令译码和执行的入口。由于\arch 指令是变长编码，
+不同指令有不同的宽度，并且不同的指令有不同的功能，所以我们在对指令进行译码和执行
+时就不能一概而论，必须要根据具体指令来选择其对应的译码和执行的实现，而区分指令
+则是根据\emph{opcode}域，所以当我们得到了一条指令的\emph{opcode}之后就需要转入
+该\emph{opcode}对应指令的译码和执行函数。\code{opcode\_table}就是保存所有\emph{opcode}
+对应实现函数的表，这个表一共有512个成员，前256个代表了\emph{opcode}长度为1的那些
+指令，后256个代表了\emph{opcode}长度为2的那些指令。
+
+由于每个\emph{opcode}对应的实现是已知的，所以\code{opcode\_table}表是静态的，
+应在编译时就设置好其成员，也就是说需要在代码文件中填写好。为了方便填写
+\code{opcode\_table}表，在\file{nemu/include/cpu/exec.h}中定义了一些宏，如下所示。
+\begin{codes*}{C}
+#define IDEXW(id, ex, w) {concat(decode_, id), concat(exec_, ex), w}
+#define IDEX(id, ex)     IDEXW(id, ex, 0)
+#define EXW(ex, w)       {NULL, concat(exec_, ex), w}
+#define EX(ex)           EXW(ex, 0)
+#define EMPTY            EX(inv)
+\end{codes*}
+
+这些宏最主要的一个就是\code{IDEXW}，这个宏有三个参数，其中\code{id}代表了译码函数名，
+\code{ex}代表了执行函数名，\code{w}代表了\code{OpcodeEntry}中的\code{width}成员。
+\code{IDEX}宏与其类似，只不过将\code{width}成员设为0。\code{EXW}宏是将译码实现
+函数设为\code{NULL}，\code{EX}宏是仅设置执行函数，\code{EMPTY}宏的定义是\code{EX(inv)}，
+而\code{inv}代表的是invalid，也就是说\code{EMPTY}代表这个指令还未实现。
+在刚开始时，表项中大多数都是\code{EMPTY}，也就是还未实现，需要自己去增加。
+
+看到这可能还会有一个问题，为什么有些指令的宽度和译码函数没有呢？指令中的宽度代表的
+是什么意思呢？我们先说为什么有些指令的译码函数没有。由于\arch 是变长指令，所以
+不同指令的长度不同，从指令的格式上来看\emph{opcode}域之后的那些(比如\emph{modr/m}
+和\emph{sib})都是可有可无的，并且当他们存在时字节数也不一定。其实\emph{opcode}域
+之后的那些域都是由\emph{opcode}决定的。\emph{opcode}决定了具体的指令，而具体的指令
+又能决定操作数的信息，而\emph{opcode}后面的那些域正是代表着操作数的信息，所以当
+\emph{opcode}知道了之后就知道是否需要后面的某些域来确定操作数信息。那么\code{OpcodeEntry}
+中的\code{width}成员代表着什么意思呢？这个成员代表的是指令操作数的长度，有些
+\emph{opcode}决定了这条指令操作数的长度，这时我们就需要在\code{OpcodeEntry}中设置，
+而有些则并不确定。还记得指令格式中的\emph{operand-size prefix}域吗？有些指令靠他
+来确定操作数的位宽，当没有这个前缀时位宽是32，当存在时位宽是16。需要知道指令操作数
+位宽的原因是我们在取操作数时需要知道，比如在内存中取操作数时，操作数字节数是0、1、
+2或4时取出来的值是不同的(当然在极个别情况下可能会相同)。这时我们就能够解释\code{isa\_exec()}
+函数中为什么要调用\code{set\_width()}函数了。\code{set\_width()}函数就是根据是否
+存在\emph{operand-size prefix}域来设置操作数的位宽到底是32还是16。

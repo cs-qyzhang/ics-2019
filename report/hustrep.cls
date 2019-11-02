@@ -124,6 +124,7 @@
 \newcommand{\fixedunderline}[2]{\underline{\makebox[#1]{#2}}}%固定长度下划线
 
 \newcommand{\code}[1]{{\texttt{#1}}}
+\newcommand{\ccode}[1]{\mintinline{C}{#1}}
 \newcommand{\file}[1]{{\texttt{#1}}}
 
 % 设置正文页眉页脚
@@ -268,6 +269,10 @@
 \declaretheorem[shaded={rulecolor=black,rulewidth=2pt,bgcolor={rgb}{1,1,1}},title=定义]{Definition}
 \renewcommand\listtheoremname{定义列表}
 
+\tcbset{%
+  before skip=10pt,
+  after skip=10pt
+}
 % 用于显示类成员和方法的盒子
 \tcbuselibrary{minted,skins,breakable}
 \newtcolorbox{classbox}[1]{%
@@ -362,8 +367,6 @@
   size=title,
   top=1.5mm,
   bottom=1.5mm,
-  before skip=10pt,
-  after skip=10pt,
   boxed title style={%
     sharp corners,
     rounded corners=northwest,
