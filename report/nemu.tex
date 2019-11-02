@@ -243,7 +243,7 @@ prefix域，所以编码\code{0x66 0x50}就代表着\code{PUSH AX}，即将操�
 域代表了内存寻址时的偏移，要和\emph{modr/m}以及\emph{sib}配合使用。而\emph{immediate}
 域则是代表了立即数，是否存在该域要看具体的\emph{opcode}。
 
-\subsection{\arch 译码实现}
+\subsection{\arch 指令译码与执行过程}
 在大致知道了\arch 指令的编码方式之后，我们就能够进行译码的实现。再次回到\code{isa\_exec()}
 函数，在函数体中首先在\pc 处取出一个字节，这时我们大概能够推断出取出的这一个字节
 是\emph{opcode}(当然也有可能是\emph{opcode}前面的那些域，我们后面再来说明如果是
@@ -321,3 +321,34 @@ typedef struct {
 2或4时取出来的值是不同的(当然在极个别情况下可能会相同)。这时我们就能够解释\code{isa\_exec()}
 函数中为什么要调用\code{set\_width()}函数了。\code{set\_width()}函数就是根据是否
 存在\emph{operand-size prefix}域来设置操作数的位宽到底是32还是16。
+
+最后还有一个问题，那就是\emph{opcode}之前的域到底是怎么处理的？我们在前面假设指令
+取出的第一个字节就是\emph{opcode}，但如果在\emph{opcode}之前有其他的域，比如
+\emph{operand-size prefix}域，那要怎么办呢？事实上，由于前面提到\emph{opcode}的
+编码与\emph{opcode}之前的域的编码是两两不同的，所以在NEMU中也将\emph{opcode}之前的
+域当作\emph{opcode}处理了，他们在\code{opcode\_table}中也存在着表项，并且这个
+表项中只包含执行函数。而在其执行函数中，会在\code{decinfo}这个全局译码信息中记录
+下这个前缀域要改变的指令行为，之后会再次调用\code{isa\_exec()}函数。注意这里的调用
+并不代表是进入到下一个指令的执行，而是重新开始这一条指令的译码及执行。由于在前缀域
+的执行函数中已经记录下了这次执行需要改变的行为，所以在真正指令译码和执行的过程中
+就可以通过\code{decinfo}来判断是否需要改变某些行为，比如当存在\emph{operand-size prefix}
+时译码过程中在取操作数时会将操作数的位宽变为16。
+
+由于NEMU比较简单，所以在所有的指令中只会出现\emph{operand-size prefix}这一种前缀域，
+该域的执行函数在\file{\archpath/exec/prefix.c}中定义，如下所示。
+\begin{codes*}{C}
+// 先忽略掉make_EHelper，这里主要关注函数体
+make_EHelper(operand_size) {
+  decinfo.isa.is_operand_size_16 = true;
+  isa_exec(pc);
+  decinfo.isa.is_operand_size_16 = false;
+}
+\end{codes*}
+
+好了，现在总结一下，在NEMU中，\arch 架构在执行一条指令时，会先在\pc 处取出一个字节，
+这个字节就是这一条指令的\emph{opcode}(前面说了如果是前缀域则也会按照\emph{opcode}
+一样处理)，然后以\emph{opcode}作为下标从\code{opcode\_table}中取出这一条指令对应
+的入口，之后如果入口中定义了译码函数则会调用译码函数，在译码函数中会根据这一条
+指令的编码规定去取出\emph{opcode}后面的域，并且根据这些域以及指令的内容去取出
+操作数，并设置目的操作数的信息。之后会调用入口中的执行函数，对译码阶段中设置的
+源操作数进行运算，并将结果放入目的操作数中。
