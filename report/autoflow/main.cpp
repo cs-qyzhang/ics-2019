@@ -405,7 +405,7 @@ creat_group(istream &src)
     /* 设置if中的group作为if group的子group
      并将其设为当前的顶层group */   \
     creat_new_mid_group(IF_BRANCH); \
-    mid_group->label = "yes";  \
+    mid_group->label = "是";  \
 }
 
 #define creat_new_for_group()   \
@@ -521,7 +521,7 @@ change_state_again:
                 //last_group = now_group;
                 now_group = now_group->father;
                 creat_new_mid_group(IF_BRANCH);
-                mid_group->label = "no";
+                mid_group->label = "否";
                 break;
             case LINE_ELSE_IF:  // FIXME:没有处理else if的条件，没有产生cond node
                 now_state = STATE_IF_BEGIN;

@@ -318,7 +318,7 @@ set_size(Group *group)
                 position = new Position(group->child[0], EAST, 0.0, 0.0);
                 pos.push_back(*position);
                 position = new Position(nullptr, RIGHT, while_line_distance +
-                    max(group->child[0]->right, group->child[1]->right) - group->child[0]->right, 0.0, "no");
+                    max(group->child[0]->right, group->child[1]->right) - group->child[0]->right, 0.0, "否");
                 pos.push_back(*position);
                 position = new Position(nullptr, BELOW, 0.0, 0.0);
                 pos.push_back(*position);
@@ -333,7 +333,7 @@ set_size(Group *group)
                 pos.clear();
                 position = new Position(group->child[0]->south.relatived, SOUTH, 0.0, 0.0);
                 pos.push_back(*position);
-                position = new Position(nullptr, BELOW, 0.0, node_distance, "yes");
+                position = new Position(nullptr, BELOW, 0.0, node_distance, "是");
                 pos.push_back(*position);
                 group->line.push_back(pos);
                 break;
@@ -387,7 +387,7 @@ set_size(Group *group)
                     pos.push_back(*position);
 
                     position = new Position(nullptr, RIGHT,
-                            group->right - relative->right + if_line_distance, 0.0, "no");
+                            group->right - relative->right + if_line_distance, 0.0, "否");
                     pos.push_back(*position);
 
                     position = new Position(nullptr, BELOW, 0.0, 0.0);
@@ -406,7 +406,7 @@ set_size(Group *group)
                     pos.push_back(*position);
 
                     position = new Position(nullptr, LEFT,
-                            relative->left - group->left + if_line_distance, 0.0, "no");
+                            relative->left - group->left + if_line_distance, 0.0, "否");
                     pos.push_back(*position);
 
                     position = new Position(nullptr, BELOW, 0.0, 0.0);
@@ -424,7 +424,7 @@ set_size(Group *group)
                 position = new Position(group->child[0]->south.relatived, SOUTH, 0.0, 0.0);
                 pos.push_back(*position);
 
-                position = new Position(nullptr, BELOW, 0.0, node_distance, "yes");
+                position = new Position(nullptr, BELOW, 0.0, node_distance, "是");
                 pos.push_back(*position);
 
                 group->line.push_back(pos);

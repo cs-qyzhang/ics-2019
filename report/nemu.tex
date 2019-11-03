@@ -91,6 +91,7 @@ else
     执行命令
     input 命令
   }
+  end
 }
 end
 \end{autoflow}
@@ -243,7 +244,7 @@ prefix域，所以编码\code{0x66 0x50}就代表着\code{PUSH AX}，即将操�
 域代表了内存寻址时的偏移，要和\emph{modr/m}以及\emph{sib}配合使用。而\emph{immediate}
 域则是代表了立即数，是否存在该域要看具体的\emph{opcode}。
 
-\subsection{\arch 指令译码与执行过程}
+\subsection{\arch 指令译码与执行设计}
 在大致知道了\arch 指令的编码方式之后，我们就能够进行译码的实现。再次回到\code{isa\_exec()}
 函数，在函数体中首先在\pc 处取出一个字节，这时我们大概能够推断出取出的这一个字节
 是\emph{opcode}(当然也有可能是\emph{opcode}前面的那些域，我们后面再来说明如果是
@@ -352,3 +353,31 @@ make_EHelper(operand_size) {
 指令的编码规定去取出\emph{opcode}后面的域，并且根据这些域以及指令的内容去取出
 操作数，并设置目的操作数的信息。之后会调用入口中的执行函数，对译码阶段中设置的
 源操作数进行运算，并将结果放入目的操作数中。
+
+\arch 译码和执行的流程图如图\ref{fig:x86-idex-flowchart}所示。\textbf{注意：}在
+流程图中将前缀域的译码单独拉出来了，但是在实现时要记得是当作\emph{opcode}一样
+处理的。
+
+\begin{figure}[!htbp]
+\centering
+\begin{autoflow}
+begin
+取出下一个字节
+while (是前缀字节?)
+{
+  在decinfo中进行标记
+  取出下一个字节
+}
+在opcode_table中取出指令入口
+if (指令需要译码?)
+{
+  调用译码函数
+}
+调用执行函数
+end
+\end{autoflow}
+\caption{\arch 译码与执行流程图}\label{fig:x86-idex-flowchart}
+\end{figure}
+
+\subsection{\arch 指令译码实现}
+
