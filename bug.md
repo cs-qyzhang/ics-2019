@@ -1,4 +1,47 @@
-# nemu
+# BUG
+
+## 环境配置
+1. 在编译的时候发现以下错误：
+
+    /usr/bin/ld: cannot find -lSDL2
+    /usr/bin/ld: cannot find -lGL
+
+显然是代表链接时没有找到对应的包。在ubuntu下，安装以下两个包：libsdl2-2.0-0和
+libgl1，安装好后再次编译发现还是不成功，根据`apt-file`命令发现libsdl2-2.0-0所
+提供的文件为/usr/lib/x86_64-linux-gnu/libSDL2-2.0.so.0.10.0，而链接时所需要的
+文件是libSDL2.so，文件名不一样，这时我们只需要使用以下命令创建一个软链接即可：
+```shell
+ln -sf /usr/lib/x86_64-linux-gnu/libSDL2-2.0.so.0.10.0 /usr/lib/x86_64-linux-gnu/libSDL2.so
+```
+-lGL没有找到的原因相同，找到安装后的文件名并创建软链接即可。
+
+2. 需要在系统的环境中加入`NEMU_HOME`、`AM_HOME`、`NAVY_HOME`这几个变量，将以下
+代码加入`~/.bashrc`或`~/.zshrc`中即可，加入后重启终端或用命令`source ~/.bashrc`
+`source ~/.zshrc`。
+```bash
+export NEMU_HOME=/path/to/your/project/nemu/
+export AM_HOME=/path/to/your/project/nexus-am/
+export NAVY_HOME=/path/to/your/project/navy-apps/
+```
+
+3. Ubuntu编译时缺少bits/libc-header-start.h，安装gcc-multilib
+
+4. Ubuntu使用gcc-9编译时产生endbr32特殊指令和notrack前缀，直接忽略即可，遇到
+endbr32指令直接让现在的pc向后移动3个字节然后执行`isa_exec(pc)`，notrack前缀直接
+执行`isa_exec(pc)`。要注意的是使用gcc-9编译后产生的notrack指令无法执行成功(可能
+是虚拟机实现的bug)，而使用gcc-8编译后的可以成功。为了使用gcc-8编译，可在Ubuntu中
+安装gcc-8，之后运行以下命令使现在的gcc使用gcc-8，在完成实验后不要忘记改回来。 (或者也可以改变nemu/Makefile，
+nexus-am/Makefile.compile，navy-apps/Makefile.compile中的CC或LD等出现gcc的位置，
+将其改为gcc-8)。
+```shell
+# 首先安装两个gcc软链接的候选项，并把gcc-8的优先级设为2，gcc-9的设为1
+sudo update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-8 2
+sudo update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-9 1
+# 为了确保当前使用的是gcc-8使用该命令查看当前的gcc，若不是则进行修改
+sudo update-alternatives --config gcc
+```
+
+## nemu
 1. 解码帮助函数`decode_op_SI()`没写对，导致后面and指令取操作数时8位立即数没有扩展，
 写错的原因是没有认清`rtl_sext()`函数的width参数指的是要扩展的数的原始位数。
 2. `rtl_push()`函数写错，在`*(uint32_t *)(&pmem[reg_l(R_ESP)]) = *src1;`这行代码

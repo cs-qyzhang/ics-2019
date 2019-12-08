@@ -7,3 +7,7 @@ make_EHelper(operand_size) {
   isa_exec(pc);
   decinfo.isa.is_operand_size_16 = false;
 }
+
+make_EHelper(notrack) {
+  isa_exec(pc);
+}

@@ -32,3 +32,10 @@ make_EHelper(nemu_trap) {
   print_asm("nemu trap");
   return;
 }
+
+make_EHelper(endbr32) {
+  void isa_exec(vaddr_t *pc);
+
+  (*pc) += 3;
+  isa_exec(pc);
+}

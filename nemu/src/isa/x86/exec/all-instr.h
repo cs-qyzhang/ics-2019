@@ -3,10 +3,12 @@
 make_EHelper(mov);
 
 make_EHelper(operand_size);
+make_EHelper(notrack);
 
 make_EHelper(nop);
 make_EHelper(inv);
 make_EHelper(nemu_trap);
+make_EHelper(endbr32);
 
 make_EHelper(add);
 make_EHelper(sub);
