@@ -149,6 +149,7 @@ int main(const char *rom_name) {
 
   struct rom *rom = &roms[0];
   if (rom_name != NULL) {
+    printf("%s\n", rom_name);
     for (int i = 1; i < nroms; i++) {
       struct rom *cur = &roms[i];
       if (strcmp(cur->name, rom_name) == 0) { // FIXME: romm_name可能为NULL

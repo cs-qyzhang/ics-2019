@@ -1,21 +1,27 @@
 # BUG
 
 ## 环境配置
-1. 在编译的时候发现以下错误：
+1. Ubuntu 19.10中需要安装的包：
+    - libsdl2-2.0-0     # 用于提供SDL2库
+    - libgl1            # 用于提供GL库
+    - libsdl2-dev       # 用于提供SDL2头文件
+    - libreadline-dev   # 由于提供readline头文件
+    - gcc-multilib      # 用于提供bits/libc-header-start.h
+
+2. 在编译的时候发现以下错误：
 
     /usr/bin/ld: cannot find -lSDL2
     /usr/bin/ld: cannot find -lGL
 
-显然是代表链接时没有找到对应的包。在ubuntu下，安装以下两个包：libsdl2-2.0-0和
-libgl1，安装好后再次编译发现还是不成功，根据`apt-file`命令发现libsdl2-2.0-0所
-提供的文件为/usr/lib/x86_64-linux-gnu/libSDL2-2.0.so.0.10.0，而链接时所需要的
-文件是libSDL2.so，文件名不一样，这时我们只需要使用以下命令创建一个软链接即可：
+显然是代表链接时没有找到对应的包。但是根据1我们已经安装了libsdl2和libgl1这两个包，
+根据`apt-file`命令发现libsdl2-2.0-0所提供的文件为/usr/lib/x86_64-linux-gnu/libSDL2-2.0.so.0.10.0，
+而链接时所需要的文件是libSDL2.so，文件名不一样，这时我们只需要使用以下命令创建一个软链接即可：
 ```shell
 ln -sf /usr/lib/x86_64-linux-gnu/libSDL2-2.0.so.0.10.0 /usr/lib/x86_64-linux-gnu/libSDL2.so
 ```
 -lGL没有找到的原因相同，找到安装后的文件名并创建软链接即可。
 
-2. 需要在系统的环境中加入`NEMU_HOME`、`AM_HOME`、`NAVY_HOME`这几个变量，将以下
+3. 需要在系统的环境中加入`NEMU_HOME`、`AM_HOME`、`NAVY_HOME`这几个变量，将以下
 代码加入`~/.bashrc`或`~/.zshrc`中即可，加入后重启终端或用命令`source ~/.bashrc`
 `source ~/.zshrc`。
 ```bash
@@ -23,8 +29,6 @@ export NEMU_HOME=/path/to/your/project/nemu/
 export AM_HOME=/path/to/your/project/nexus-am/
 export NAVY_HOME=/path/to/your/project/navy-apps/
 ```
-
-3. Ubuntu编译时缺少bits/libc-header-start.h，安装gcc-multilib
 
 4. Ubuntu使用gcc-9编译时产生endbr32特殊指令和notrack前缀，直接忽略即可，遇到
 endbr32指令直接让现在的pc向后移动3个字节然后执行`isa_exec(pc)`，notrack前缀直接
