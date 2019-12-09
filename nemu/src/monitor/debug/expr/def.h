@@ -9,6 +9,7 @@
 #include "rtl/rtl.h"
 
 extern struct expr_info *info;
+extern bool parse_success;
 
 enum relop{
   LT,
@@ -44,20 +45,35 @@ static inline struct node *expr_access_memory(struct node *op) {
 }
 
 static inline struct node *expr_access_register(char *reg) {
-  int index = isa_get_reg_index(reg);
-  if (info) {
-    info->is_const = false;
-    int wp_reg_index = (index < 16) ? index % 8 : index % 4;
-    if (info->reg_list == NULL) {
-      info->reg_list = (struct list_node *)malloc(sizeof(struct list_node));
-      init_list(info->reg_list, wp_reg_index, NULL);
-    } else {
-      list_add(info->reg_list, wp_reg_index, NULL);
-    }
-  }
   struct node *ret = mknode();
-  ret->type = TYPE_INT;
-  ret->type_int = isa_access_reg(index);
+  if (!strcmp(reg, "eip")) {  // 单独处理eip
+    ret->type = TYPE_INT;
+    ret->type_int = cpu.pc;
+    if (info) {
+      info->is_const = false;
+      int wp_reg_index = 8;
+      if (info->reg_list == NULL) {
+        info->reg_list = (struct list_node *)malloc(sizeof(struct list_node));
+        init_list(info->reg_list, wp_reg_index, NULL);
+      } else {
+        list_add(info->reg_list, wp_reg_index, NULL);
+      }
+    }
+  } else {
+    int index = isa_get_reg_index(reg);
+    if (info) {
+      info->is_const = false;
+      int wp_reg_index = (index < 16) ? index % 8 : index % 4;
+      if (info->reg_list == NULL) {
+        info->reg_list = (struct list_node *)malloc(sizeof(struct list_node));
+        init_list(info->reg_list, wp_reg_index, NULL);
+      } else {
+        list_add(info->reg_list, wp_reg_index, NULL);
+      }
+    }
+    ret->type = TYPE_INT;
+    ret->type_int = isa_access_reg(index);
+  }
   return ret;
 }
 

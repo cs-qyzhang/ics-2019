@@ -49,7 +49,7 @@ static int cmd_p(char *args) {
   bool success;
   struct node *val = expr(args, &success, NULL);
   if (!success) {
-    fprintf(stderr, "WRONG EXPR!\n");
+    Log("WRONG EXPR!");
     return 0;
   }
   print_node(val);
@@ -95,7 +95,18 @@ static int cmd_d(char *args) {
 }
 
 static int cmd_s(char *args) {
-  cpu_exec(1);
+  if (args != NULL) {
+    char *p = args;
+    while (*p != '\0') {
+      if (*p < '0' || *p > '9') {
+        Log("s command's param is not a demical!");
+      }
+      p++;
+    }
+    cpu_exec(atoi(args));
+  } else {
+    cpu_exec(1);
+  }
   return 0;
 }
 
@@ -158,11 +169,11 @@ void ui_mainloop(int is_batch_mode) {
     /* treat the remaining string as the arguments,
      * which may need further parsing
      */
-    char *args = cmd + strlen(cmd) + 1;
+    char *args = str + strlen(cmd) + 1;
     if (args >= str_end) {
       args = NULL;  // 注意这里的args字符串后面会改变！
     } else {
-      args = strtok(NULL, " ");
+      // args = strtok(NULL, " ");
     }
 
 #ifdef HAS_IOE

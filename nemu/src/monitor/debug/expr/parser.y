@@ -1,4 +1,4 @@
-%error-verbose
+%define parse.error verbose
 %locations
 %{
 #include "def.h"
@@ -137,16 +137,20 @@ conditional_expression:
   | logical_OR_expression QUES conditional_expression COLON conditional_expression  {$$=expr_cond($1, $3, $5);}
   ;
 %%
+bool parse_success;
 
 struct node *expr(char *e, bool *success, struct expr_info *e_info) {
+  parse_success = true;
   info = e_info;
   yylineno = 1;
   yycolumn = 1;
   YY_BUFFER_STATE buffer = yy_scan_string(e);
   result = NULL;
-  yyparse();
-  yy_delete_buffer(buffer);
-  *success = true;
+  if (parse_success) {
+    yyparse();
+    yy_delete_buffer(buffer);
+  }
+  *success = parse_success;
   return result;
 }
 
@@ -157,4 +161,5 @@ void yyerror(const char* fmt, ...) {
   fprintf(stderr, "Grammar Error at Line %d Column %d: ", yylloc.first_line,yylloc.first_column);
   vfprintf(stderr, fmt, ap);
   fprintf(stderr, ".\n");
+  parse_success = false;
 }

@@ -71,7 +71,7 @@ register        (eip|(e?(ax|bx|cx|dx|si|di|sp|bp))|((a|b|c|d)(h|l)))
 [ \r\t]         {}
 
  /*匹配出错*/
-.               {printf("Flex Error: Mysterious character \"%s\"\n\t at Line %d, Column %d\n", yytext, yylineno, yycolumn);}
+.               {printf("Flex Error: Mysterious character \"%s\"\n\t at Line %d, Column %d\n", yytext, yylineno, yycolumn);parse_success=false;}
 
 %%
 

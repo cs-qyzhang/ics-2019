@@ -1,7 +1,7 @@
 #ifndef __COMMON_H__
 #define __COMMON_H__
 
-// #define DEBUG
+#define DEBUG
 // #define CALL_LOG
 // #define DIFF_TEST
 

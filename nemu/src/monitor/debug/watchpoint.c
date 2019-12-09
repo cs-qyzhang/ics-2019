@@ -6,6 +6,9 @@
 
 // 事实上为WP_REG_FLAG类型
 bool wp_reg_flag, wp_reg_changed, wp_access_mem;
+bool wp_eip_flag;
+uint32_t wp_eip_watch;
+struct watchpoint *wp_eip;
 
 // 表示寄存器被哪一个watchpoint所监视
 struct list_node wp_reg[8];
@@ -43,7 +46,10 @@ void add_wp(char *wp_expr) {
   struct node *expr_val;
   init_expr_info(&info);
   expr_val = expr(wp_expr, &success, &info);
-  if (!success) return;
+  if (!success) {
+    Log("WRONG EXPR!");
+    return;
+  }
   if (info.is_const) {
     Log("watchpoint expr is const!");
     return;
@@ -76,15 +82,27 @@ void add_wp(char *wp_expr) {
   cur->reg_list = info.reg_list;
   cur->access_mem = info.access_mem;
 
-  // 维护wp_reg_flag等信息
-  struct list_node *p;
-  p = cur->reg_list;
-  while (p) {
-    int reg = p->data;
-    wp_reg_flag |= reg_mask[reg];
-    list_add(&wp_reg[reg], cur->NO, NULL);
-    p = p->next == cur->reg_list ? NULL : p->next;
+  if (info.reg_list->data == 8) {
+    char *p = wp_expr;
+    while (*p != '=')
+      p++;
+    p++;
+    p++;
+    wp_eip_flag = true;
+    wp_eip_watch = expr(p, &success, NULL)->type_int;
+    wp_eip = cur;
+  } else {
+    // 维护wp_reg_flag等信息
+    struct list_node *p;
+    p = cur->reg_list;
+    while (p) {
+      int reg = p->data;
+      wp_reg_flag |= reg_mask[reg];
+      list_add(&wp_reg[reg], cur->NO, NULL);
+      p = p->next == cur->reg_list ? NULL : p->next;
+    }
   }
+
   Log("add watch point %d", cur->NO);
 }
 

@@ -64,6 +64,14 @@ void cpu_exec(uint64_t n) {
     }
 
     /* XXX: check watchpoints here. */
+    if (seq_pc == wp_eip_watch) {
+      putchar('\n');
+      printf("Watchpoint %d changed at address 0x%x! Watchpoint expression: %s\n", wp_eip->NO, ori_pc, wp_eip->expression);
+      printf("Old value: false\n");
+      printf("New value: true\n");
+      putchar('\n');
+      return;
+    }
     if (wp_detect(ori_pc))
       return;
 

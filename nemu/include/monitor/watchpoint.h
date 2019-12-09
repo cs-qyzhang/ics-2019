@@ -39,5 +39,8 @@ bool wp_detect(vaddr_t pc);
 extern bool wp_reg_changed;
 extern bool wp_access_mem;
 extern bool wp_reg_flag;
+extern bool wp_eip_flag;
+extern uint32_t wp_eip_watch;
+extern struct watchpoint *wp_eip;
 
 #endif
