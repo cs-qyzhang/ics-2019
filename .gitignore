@@ -10,3 +10,5 @@ build/
 !report/*.tex
 !report/*.lua
 !report/main.pdf
+!.ycm_extra_conf.py
+!.nvimrc
