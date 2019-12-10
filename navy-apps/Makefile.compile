@@ -1,6 +1,6 @@
 # Compilation flags
 
-#VME = enable
+VME = enable
 
 ifeq ($(ISA), mips32)
 CROSS_COMPILE = mips-linux-gnu-

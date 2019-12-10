@@ -84,3 +84,8 @@ sudo update-alternatives --config gcc
 23. 在`_sbrk()`中初始化program break时应将其初始化为`&_end`，即`_end`的地址
 24. 在litenes游戏中，由于帧率比较低，所以键盘在敲击时需要按长一点，否则识别不到
 25. 在`fs_close()`中应该将`open_offset`设为0
+26. 注意 `page_translate()` 要写在 nemu 中，不能够写在 AM 的 VME 中，这是因为
+`page_translate()` 是用来读取虚拟机内存的，必须由虚拟机完成映射，而 AM 是运行在
+虚拟机上的软件，若写在 AM 中，则 AM 在读取内存数据时又调用自己来解析地址，这样
+会不断循环。另外页表等都保存在虚拟机的内存中，所以需要用 `paddr_read()`来获取页表内容。
+27. 在`page_translate()`里注意从页目录中读出来的并不是真正的页表指针，需要将后面的标志位屏蔽掉！

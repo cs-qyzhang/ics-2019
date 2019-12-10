@@ -286,9 +286,9 @@ static inline void set_tr(int selector) {
   asm volatile ("ltr %0" : : "r"((uint16_t)selector));
 }
 
-static inline uint32_t get_cr2() {
+static inline uint32_t get_cr3() {
   volatile uint32_t val;
-  asm volatile ("movl %%cr2, %0" : "=r"(val));
+  asm volatile ("movl %%cr3, %0" : "=r"(val));
   return val;
 }
 

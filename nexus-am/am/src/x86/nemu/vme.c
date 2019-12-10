@@ -1,5 +1,6 @@
 #include <am.h>
 #include <x86.h>
+#include <klib.h>
 #include <nemu.h>
 
 #define PG_ALIGN __attribute((aligned(PGSIZE)))
@@ -48,6 +49,7 @@ int _vme_init(void* (*pgalloc_f)(size_t), void (*pgfree_f)(void*)) {
 
   set_cr3(kpdirs);
   set_cr0(get_cr0() | CR0_PG);
+  printf("enable vme!\n");
   vme_enable = 1;
 
   return 0;
@@ -79,10 +81,34 @@ void __am_switch(_Context *c) {
   }
 }
 
+// 将va虚拟地址映射到pa物理地址，将该映射关系写入页表中
 int _map(_AddressSpace *as, void *va, void *pa, int prot) {
+  PTE *pdir = as->ptr;
+  PDE *pptab = &pdir[PDX(va)];
+
+  if (!(*pptab & PTE_P)) {  // 如果页表不存在则分配一个页目录
+    *pptab = (uint32_t)pgalloc_usr(1);
+    memset((void *)*pptab, 0, PGSIZE);
+    *pptab = *pptab | PTE_P;
+  }
+
+  PDE *ptab = &(((PDE *)PTE_ADDR(*pptab))[PTX(va)]);
+  if (*ptab & PTE_P) {  // 如果页已经存在则报错
+    printf("ERROR:vme _map(): page map already exists!");
+    assert(0); 
+  }
+  *ptab = PTE_ADDR(pa) | PTE_P;
+
   return 0;
 }
 
 _Context *_ucontext(_AddressSpace *as, _Area ustack, _Area kstack, void *entry, void *args) {
-  return NULL;
+  _Context *context = ustack.end - sizeof(_Context) - 0x20;
+  memset(context, 0x00, sizeof(_Context) + 0x20);
+  context->cs = 8;
+  context->eip = (uint32_t)entry;
+  memset(&context->eflags, 0x02, sizeof(context->eflags));
+  context->as = NULL;
+
+  return context;
 }

@@ -2,11 +2,12 @@
 
 static _Context* do_event(_Event e, _Context* c) {
   extern _Context* do_syscall(_Context *c);
+  extern _Context* schedule(_Context *prev);
 
   switch (e.event) {
     case _EVENT_YIELD:
       printf("yield!\n");
-      break;
+      return schedule(c);
 
     case _EVENT_SYSCALL:
       return do_syscall(c);

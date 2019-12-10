@@ -148,6 +148,7 @@ int main(const char *rom_name) {
   _ioe_init();
 
   struct rom *rom = &roms[0];
+  rom_name = "mario";
   if (rom_name != NULL) {
     printf("%s\n", rom_name);
     for (int i = 1; i < nroms; i++) {

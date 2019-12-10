@@ -6,15 +6,16 @@
 
 __am_asm_trap:
   pushal
+  pushl $0            # AddressSpace
+  pushl %esp          # _Context * 参数
 
-  pushl $0
-
-  pushl %esp
   call __am_irq_handle
 
-  addl $4, %esp
+  addl $4, %esp       # _Context * 参数
 
-  addl $4, %esp
+  movl %eax, %esp     # 进行上下文切换，eax保存了 schedule() 返回的上下文指针
+
+  addl $4, %esp       # AddressSpace
   popal
   addl $4, %esp
 

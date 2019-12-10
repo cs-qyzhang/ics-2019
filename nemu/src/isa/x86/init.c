@@ -23,6 +23,7 @@ static void restart() {
   cpu.ES = 0;
   cpu.FS = 0;
   cpu.GS = 0;
+  cpu.cr0.val = 0x60000011;   // 启动时关闭分页
 }
 
 void init_isa(void) {

@@ -2,6 +2,7 @@
 #define __X86_REG_H__
 
 #include "common.h"
+#include "isa/mmu.h"
 
 #define PC_START IMAGE_START
 
@@ -61,6 +62,9 @@ typedef struct {
     uint16_t limit;
     uint32_t base;
   } IDTR; // IDT Register
+
+  CR0 cr0;
+  CR3 cr3;
 
   uint16_t CS, SS, DS, ES, FS, GS;
 
