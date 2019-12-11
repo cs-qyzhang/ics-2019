@@ -5,6 +5,7 @@
 #include "memory.h"
 
 #define STACK_SIZE (8 * PGSIZE)
+#define MAX_NR_PROC 4
 
 typedef union {
   uint8_t stack[STACK_SIZE] PG_ALIGN;
@@ -17,6 +18,8 @@ typedef union {
 } PCB;
 
 extern PCB *current;
+extern PCB *fg_pcb;
+extern PCB pcb[MAX_NR_PROC];
 extern void naive_uload(PCB *pcb, const char *filename);
 extern void context_uload(PCB *pcb, const char *filename);
 extern void run_proc(PCB *pcb);

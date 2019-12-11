@@ -1,12 +1,19 @@
 #include "common.h"
+#include "am.h"
 
 static _Context* do_event(_Event e, _Context* c) {
   extern _Context* do_syscall(_Context *c);
   extern _Context* schedule(_Context *prev);
 
   switch (e.event) {
+    case _EVENT_IRQ_TIMER:  // 接收到时钟中断时按照yield处理
+#ifdef DEBUG
+      Log("EVENT_IRQ_TIMER");
+#endif
     case _EVENT_YIELD:
-      printf("yield!\n");
+#ifdef DEBUG
+      Log("yield!");
+#endif
       return schedule(c);
 
     case _EVENT_SYSCALL:

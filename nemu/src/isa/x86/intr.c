@@ -1,6 +1,8 @@
 #include "rtl/rtl.h"
 #include "isa/rtl.h"
 
+#define IRQ_TIMER 0x20
+
 void raise_intr(uint32_t NO, vaddr_t ret_addr) {
   /* XXX: Trigger an interrupt/exception with ``NO''.
    * That is, use ``NO'' to index the IDT.
@@ -9,6 +11,7 @@ void raise_intr(uint32_t NO, vaddr_t ret_addr) {
 
   assert((NO + 1) * 8 <= cpu.IDTR.limit);
   rtl_push((rtlreg_t *)&cpu.eflags);
+  cpu.eflags.IF = 0;  // 关中断
   rtl_li(&tmp, cpu.CS);
   rtl_push(&tmp);
   rtl_push(&ret_addr);
@@ -32,5 +35,10 @@ void raise_intr(uint32_t NO, vaddr_t ret_addr) {
 }
 
 bool isa_query_intr(void) {
+  if (cpu.eflags.IF & cpu.INTR) {
+    cpu.INTR = false;
+    raise_intr(IRQ_TIMER, cpu.pc);
+    return true;
+  }
   return false;
 }

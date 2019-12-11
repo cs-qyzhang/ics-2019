@@ -1,4 +1,5 @@
 #include "common.h"
+#include "proc.h"
 #include <amdev.h>
 
 extern void _yield();
@@ -29,6 +30,22 @@ size_t events_read(void *buf, size_t offset, size_t len) {
     sprintf(buf, "t %d\n", uptime());
   } else if (keycode & KEYDOWN_MASK) {
     sprintf(buf, "kd %s\n", keyname[keycode & ~KEYDOWN_MASK]);
+    if (keyname[keycode & ~KEYDOWN_MASK][0] == 'F') {
+      Log("F key down!");
+      switch (keyname[keycode & ~KEYDOWN_MASK][1]) {
+        case '1':
+          fg_pcb = &pcb[1];
+          break;
+        case '2':
+          fg_pcb = &pcb[2];
+          break;
+        case '3':
+          fg_pcb = &pcb[3];
+          break;
+        default:
+          break;
+      }
+    }
   } else {
     sprintf(buf, "ku %s\n", keyname[keycode & ~KEYDOWN_MASK]);
   }

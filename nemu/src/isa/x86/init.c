@@ -16,7 +16,7 @@ const long isa_default_img_size = sizeof(isa_default_img);
 static void restart() {
   /* Set the initial program counter. */
   cpu.pc = PC_START;
-  memset(&cpu.eflags, 0x02, sizeof(cpu.eflags));
+  cpu.eflags.val = 0x02;
   cpu.CS = 8;
   cpu.SS = 0;
   cpu.DS = 0;
@@ -24,6 +24,7 @@ static void restart() {
   cpu.FS = 0;
   cpu.GS = 0;
   cpu.cr0.val = 0x60000011;   // 启动时关闭分页
+  cpu.INTR = false;
 }
 
 void init_isa(void) {

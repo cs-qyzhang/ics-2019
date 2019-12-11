@@ -107,8 +107,9 @@ _Context *_ucontext(_AddressSpace *as, _Area ustack, _Area kstack, void *entry, 
   memset(context, 0x00, sizeof(_Context) + 0x20);
   context->cs = 8;
   context->eip = (uint32_t)entry;
-  memset(&context->eflags, 0x02, sizeof(context->eflags));
+  context->eflags.val = 0x02;
   context->as = as;
+  context->eflags.IF = 1;
 
   return context;
 }

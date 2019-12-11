@@ -22,5 +22,9 @@ vaddr_t exec_once(void) {
   isa_exec(&decinfo.seq_pc);
   update_pc();
 
+  // 中断检测
+  extern bool isa_query_intr(void);
+  if (isa_query_intr()) update_pc();
+
   return decinfo.seq_pc;
 }
