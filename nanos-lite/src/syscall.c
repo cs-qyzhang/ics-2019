@@ -24,12 +24,23 @@ static inline int32_t sys_close(int fd) {
 }
 
 static inline int32_t sys_execve(const char *pathname, char *const argv[], char *const envp[]) {
-  naive_uload(NULL, pathname);
+  context_uload(current, pathname);
+  run_proc(current);
   return 0;
 }
 
 static inline int32_t sys_exit(int32_t status) {
+  //_halt(0);
   return sys_execve("/bin/init", NULL, NULL);
+}
+
+static inline int32_t sys_brk(uint32_t brk) {
+#ifdef HAS_VME
+  extern int mm_brk(uintptr_t new_brk);
+  return mm_brk(brk);
+#else
+  return 0;
+#endif
 }
 
 _Context* do_syscall(_Context *c) {
@@ -69,7 +80,7 @@ _Context* do_syscall(_Context *c) {
       c->GPRx = sys_lseek(a[1], a[2], a[3]);
       break;
     case SYS_brk: // 总是成功
-      c->GPRx = 0;
+      c->GPRx = sys_brk(a[1]);
       break;
     case SYS_fstat:
       panic("Unhandled syscall ID = %d", a[0]);

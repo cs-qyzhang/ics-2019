@@ -49,7 +49,6 @@ int _vme_init(void* (*pgalloc_f)(size_t), void (*pgfree_f)(void*)) {
 
   set_cr3(kpdirs);
   set_cr0(get_cr0() | CR0_PG);
-  printf("enable vme!\n");
   vme_enable = 1;
 
   return 0;
@@ -58,6 +57,7 @@ int _vme_init(void* (*pgalloc_f)(size_t), void (*pgfree_f)(void*)) {
 int _protect(_AddressSpace *as) {
   PDE *updir = (PDE*)(pgalloc_usr(1));
   as->ptr = updir;
+  memset(as->ptr, 0, PGSIZE);
   // map kernel space
   for (int i = 0; i < NR_PDE; i ++) {
     updir[i] = kpdirs[i];
@@ -83,7 +83,7 @@ void __am_switch(_Context *c) {
 
 // 将va虚拟地址映射到pa物理地址，将该映射关系写入页表中
 int _map(_AddressSpace *as, void *va, void *pa, int prot) {
-  PTE *pdir = as->ptr;
+  PTE *pdir = (as == NULL) ? (void *)get_cr3() : (void *)as->ptr;
   PDE *pptab = &pdir[PDX(va)];
 
   if (!(*pptab & PTE_P)) {  // 如果页表不存在则分配一个页目录
@@ -94,7 +94,7 @@ int _map(_AddressSpace *as, void *va, void *pa, int prot) {
 
   PDE *ptab = &(((PDE *)PTE_ADDR(*pptab))[PTX(va)]);
   if (*ptab & PTE_P) {  // 如果页已经存在则报错
-    printf("ERROR:vme _map(): page map already exists!");
+    printf("ERROR:vme _map(): page map already exists! %x\n", *ptab);
     assert(0); 
   }
   *ptab = PTE_ADDR(pa) | PTE_P;
@@ -108,7 +108,14 @@ _Context *_ucontext(_AddressSpace *as, _Area ustack, _Area kstack, void *entry, 
   context->cs = 8;
   context->eip = (uint32_t)entry;
   memset(&context->eflags, 0x02, sizeof(context->eflags));
-  context->as = NULL;
+  context->as = as;
 
   return context;
+}
+
+void _urun(_AddressSpace *as, void (*entry)()) {
+  printf("_urun Jump to entry = 0x%x, ptr: %x\n", (uint32_t)entry, (uint32_t)as->ptr);
+  set_cr3(as->ptr);
+  cur_as = as;
+  entry();
 }

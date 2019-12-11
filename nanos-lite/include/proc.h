@@ -18,5 +18,7 @@ typedef union {
 
 extern PCB *current;
 extern void naive_uload(PCB *pcb, const char *filename);
+extern void context_uload(PCB *pcb, const char *filename);
+extern void run_proc(PCB *pcb);
 
 #endif
