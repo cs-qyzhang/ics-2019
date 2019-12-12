@@ -42,7 +42,7 @@
 \newCJKfontfamily\kai[BoldFont=FZCuKaiS-R-GB]{FZKai-Z03S}
 \newCJKfontfamily\xiaobiaosong[AutoFakeBold]{FZXiaoBiaoSong-B05S}
 \newCJKfontfamily\dabiaosong[AutoFakeBold]{FZDaBiaoSong-B06S}
-\setmainfont{Nimbus Roman}
+\setmainfont{TeX Gyre Termes}
 
 %字段定义
 \def\hust@class{计算机科学与技术1606班}%

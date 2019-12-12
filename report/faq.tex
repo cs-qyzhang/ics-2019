@@ -1,0 +1,252 @@
+\chapter{必答题}
+\section{PA1}
+\noindent{\large\textbf{问：}}
+
+  \CJKunderline{理解基础设施}。我们通过一些简单的计算来体会简易调试器的作用。首先作以下假设:
+  \begin{itemize}
+    \item 假设你需要编译500次NEMU才能完成PA
+    \item 假设这500次编译当中, 有90\%的次数是用于调试.
+    \item 假设你没有实现简易调试器, 只能通过GDB对运行在NEMU上的客户程序进行调
+      试. 在每一次调试中, 由于GDB不能直接观测客户程序, 你需要花费30秒的时间来
+      从GDB中获取并分析一个信息.
+    \item 假设你需要获取并分析20个信息才能排除一个bug.
+  \end{itemize}
+
+  1. 那么这个学期下来, 你将会在调试上花费多少时间?
+
+  2. 由于简易调试器可以直接观测客户程序, 假设通过简易调试器只需要花费10秒的时间
+  从中获取并分析相同的信息. 那么这个学期下来, 简易调试器可以帮助你节省多少调
+  试的时间?
+
+\vspace{0.5em}
+\noindent{\large\textbf{答：}}
+
+  1. 根据以上假设，经过以下计算公式可以得到答案：
+  \[ \text{总调试时间} = \text{编译次数}\times\text{调试比例}\times\text{每次调试需要获得的信息}\times\text{每个信息获取时间} \]
+  即：
+  \[ \text{总调试时间} = 500 \times 90\% \times 20 \times 30 = 270000s = 75h \]
+  
+  2. 根据该假设获取每个信息的时间从30s变为了10s，则总的时间变成了原来的三分之一，
+  于是有：
+  \[ \text{总调试时间} = \frac{75}{3}h = 25h \]
+
+\vspace{0.5em}
+\noindent{\large\textbf{问：}}
+
+  \CJKunderline{查阅i386手册}。理解了科学查阅手册的方法之后，请你尝试在i386手册
+  中查阅以下问题所在的位置，把需要阅读的范围写到你的实验报告里面:
+
+  1. EFLAGS寄存器中的CF位是什么意思?
+
+  2. ModR/M字节是什么?
+  
+  3. mov指令的具体格式是怎么样的?
+
+\vspace{0.5em}
+\noindent{\large\textbf{答：}}
+
+  1. CF位包含了无符号数加减法的进位信息，可在i386手册的3.2节和2.3.4节找到。
+
+  2. ModR/M字节包含了指令的寻址等信息，具体的内容可见报告的\ref{sec:x86-instr-format}
+  一节。在i386手册中可在17.2.1一节中找到详细的描述。
+
+  3. mov指令有很多种变形，若操作数为寄存器则是一个字节的\emph{opcode}跟上一个
+  字节的\emph{modr/m}；若有一个操作数是立即数则是一个字节的\emph{opcode}跟上若干
+  字节的立即数，立即数的位数由\emph{opcode}决定。
+
+\vspace{0.5em}
+\noindent{\large\textbf{问：}}
+
+  \CJKunderline{shell命令}。完成PA1的内容之后，\file{nemu/}目录下的所有.c和.h
+  文件总共有多少行代码? 你是使用什么命令得到这个结果的? 和框架代码相比，你在PA1
+  中编写了多少行代码? (Hint: 目前pa1分支中记录的正好是做PA1之前的状态，思考一下
+  应该如何回到``过去''?) 你可以把这条命令写入Makefile中, 随着实验进度的推进, 你
+  可以很方便地统计工程的代码行数，例如敲入\code{make count}就会自动运行统计代码
+  行数的命令。再来个难一点的，除去空行之外，\code{nemu/}目录下的所有.c和.h文件
+  总共有多少行代码?
+
+\vspace{0.5em}
+\noindent{\large\textbf{答：}}
+
+  1. 当不考虑空行时，可以使用以下命令来统计：
+\begin{codes*}{shell}
+find . -not -regex '.*riscv32.*\|.*mips32.*\|.*build.*\|.*tools.*' | grep '\.c$\|\.h$\|\.y$\|\.l$' | xargs wc -l
+\end{codes*}
+  这条命令首先使用\code{find}命令来查找\file{nemu/}下的所有文件，并且使用正则
+  表达式去掉了所有包含riscv32、mips32、build或tools的文件，之后使用\code{grep}
+  命令筛选出后缀为.c、.h、.l、.y的文件，最后使用\code{wc}命令统计。统计结果为
+  5187行。\textbf{注意：}由于之前编写时没有按阶段保存，这里统计的代码是完成PA4之后的。
+
+  2. 当考虑空行时，需要在获取到文件之后使用\code{cat}命令读出所有文件的内容，
+  之后使用\code{sed}流编辑器去除空行，最后再用\code{wc}来统计。该命令如下所示：
+\begin{codes*}{shell}
+find . -not -regex '.*riscv32.*\|.*mips32.*\|.*build.*\|.*tools.*' | grep '\.c$\|\.h$\|\.y$\|\.l$' | xargs cat | sed '/^\s*$/d' | wc -l
+\end{codes*}
+  统计结果为4378行。\textbf{注意：}由于之前编写时没有按阶段保存，这里统计的代码
+  是完成PA4之后的。
+
+\vspace{0.5em}
+\noindent{\large\textbf{问：}}
+
+  \CJKunderline{使用man}。打开工程目录下的Makefile文件, 你会在CFLAGS变量中看到
+  gcc的一些编译选项。请解释gcc中的-Wall和-Werror有什么作用? 为什么要使用-Wall和
+  -Werror?
+
+\vspace{0.5em}
+\noindent{\large\textbf{答：}}
+
+  -Wall 会在编译时显示所有的Warning，-Werror 会把所有的Warning变成error。加入
+  这两个编译选项是尽量在编译时显示出代码中的错误，这样会避免一些简单的错误。
+
+\section{PA2}
+\noindent{\large\textbf{问：}}
+
+  \CJKunderline{编译与链接}。在\file{nemu/include/rtl/rtl.h}中, 你会看到由
+  \code{static inline}开头定义的各种RTL指令函数. 选择其中一个函数, 分别尝试去掉
+  \code{static}, 去掉\code{inline}或去掉两者, 然后重新进行编译, 你可能会看到发生
+  错误. 请分别解释为什么这些错误会发生/不发生? 你有办法证明你的想法吗?
+
+\vspace{0.5em}
+\noindent{\large\textbf{答：}}
+
+  对于这些函数，当同时去掉\code{static}和\code{inline}时会发生链接错误，这是因为
+  这些函数定义在头文件中，若两个修饰符都没有的话每次包含该头文件时都会将该函数定义
+  一边，这样就造成了重定义。\code{static}代表该函数只能在该文件中使用，所以带上
+  该修饰符时不会造成重定义。而\code{inline}修饰符有时候编译器会将函数变为类似于
+  宏来处理，也不会发生重定义。
+
+\vspace{0.5em}
+\noindent{\large\textbf{问：}}
+
+  \CJKunderline{编译与链接}。
+
+  1. 在\file{nemu/include/common.h}中添加一行\code{volatile static int dummy;}，
+  然后重新编译NEMU. 请问重新编译后的NEMU含有多少个\code{dummy}变量的实体? 
+  你是如何得到这个结果的?
+
+  2. 添加上题中的代码后, 再在\file{nemu/include/debug.h}中添加一行
+  \code{volatile static int dummy;}，然后重新编译NEMU. 请问此时的NEMU含有多少个
+  \code{dummy}变量的实体? 与上题中dummy变量实体数目进行比较, 并解释本题的结果.
+
+  3. 修改添加的代码, 为两处\code{dummy}变量进行初始化:\code{volatile static int dummy = 0;}
+  然后重新编译NEMU. 你发现了什么问题? 为什么之前没有出现这样的问题?
+
+\vspace{0.5em}
+\noindent{\large\textbf{答：}}
+
+  1. 有一个，因为这里只在该文件中使用\code{static}修饰符定义了一次。
+
+  2. 有一个，因为这里虽然在两个文件中定义了，但这两个都使用了\code{static}修饰符，
+  而且\code{debug.h}包含了\code{common.h}，这样就相当于在\code{debug.h}中定义了
+  两个包含\code{static}修饰符的\code{dummy}，而在同一个文件中使用\code{static}
+  修饰符同一个变量可以写多次定义，但只定义了一次。
+
+  3. 会出现错误，因为在\code{debug.h}文件中使用\code{static}定义了两次\code{dummy}
+  且对这两个都进行了赋值。
+
+  为了进行检验，在\code{common.h}中加入以下代码：
+\begin{codes*}{C}
+static int a;
+static int dummy;
+static int b;
+
+static inline dummy_common() {
+    printf("dummy_common\n");
+    printf("  &a: %p\n",  &a);
+    printf("  &b: %p\n",  &b);
+    printf("  &dummy: %p\n",  &dummy);
+}
+\end{codes*}
+  在\file{debug.h}中加入以下代码：
+\begin{codes*}{C}
+static int c;
+static int dummy;
+static int d;
+
+static inline dummy_common() {
+    printf("dummy_common\n");
+    printf("  &c: %p\n",  &c);
+    printf("  &d: %p\n",  &d);
+    printf("  &dummy: %p\n",  &dummy);
+}
+\end{codes*}
+  并在\code{main}函数中调用\code{dummy\_common()}和\code{dummy\_debug()}，运行
+  的输入如图\ref{fig:faq-dummy}所示。
+
+  \hustfigure[0.4\textwidth]{figure/faq-dummy.png}{\code{dummy}变量有关输出}{fig:faq-dummy}
+
+  从图中能够看出，两个文件中的\code{dummy}具有相同的内存地址。所以能够知道只有
+  一个\code{dummy}实体。
+
+\vspace{0.5em}
+\noindent{\large\textbf{问：}}
+
+  \CJKunderline{了解Makefile}。请描述你在\file{nemu/}目录下敲入\code{make}后, 
+  \code{make}程序如何组织.c和.h文件, 最终生成可执行文件\code{nemu/build/\$ISA-nemu}.
+  (这个问题包括两个方面:Makefile的工作方式和编译链接的过程.) 关于Makefile工作方式的提示:
+  \begin{itemize}
+    \item Makefile中使用了变量, 包含文件等特性
+    \item Makefile运用并重写了一些implicit rules
+    \item 在man make中搜索-n选项, 也许会对你有帮助
+    \item RTFM
+  \end{itemize}
+
+\vspace{0.5em}
+\noindent{\large\textbf{答：}}
+
+  Makefile文件主要由一个个规则构成，这些规则包含了目标文件、需要的源文件以及生成
+  目标文件所需要的命令。在敲入\code{make}命令之后，由于在Makefile中设置了\code{DEFAULT\_GOAL}
+  为app，所以会去运行app规则，而app需要的文件为BINARY，这时又会去运行BINARY所对应
+  的规则，就这样一直进行下去直到可以运行一条规则，之后再递归上来最终运行app规则。
+
+  在Makefile中，.c和.h文件主要是由以下三行组织：
+\begin{codes*}{Makefile}
+SRCS = $(shell find src/ -name "*.c" | grep -v "isa")
+SRCS += $(shell find src/isa/$(ISA) -name "*.c")
+INC_DIR += ./include ./src/isa/$(ISA)/include
+\end{codes*}
+  其中前两行是通过shell命令来寻找该文件夹下包含的所有.c文件。
+
+\section{PA3}
+\noindent{\large\textbf{问：}}
+  \CJKunderline{文件读写的具体过程}。仙剑奇侠传中有以下行为:
+  \begin{itemize}
+    \item 在\file{navy-apps/apps/pal/src/global/global.c}的\code{PAL\_LoadGame()}
+      中通过\code{fread()}读取游戏存档
+    \item 在\file{navy-apps/apps/pal/src/hal/hal.c}的\code{redraw()}中通过
+      \code{NDL\_DrawRect()}更新屏幕
+  \end{itemize}
+
+  请结合代码解释仙剑奇侠传, 库函数, libos, Nanos-lite, AM, NEMU是如何相互协助,
+  来分别完成游戏存档的读取和屏幕的更新。
+
+\vspace{0.5em}
+\noindent{\large\textbf{答：}}
+
+  1. 使用\code{fread()}进行读档的过程为：首先调用libc中的\code{fread()}函数，之后
+  libc会进行一系列的系统调用，主要的系统调用为\code{read()}系统调用。当调用了
+  \code{read()}之后，会调用libos的\code{\_read()}函数，之后libos会调用\code{\_syscall\_()}
+  函数，在调用了\code{\_syscall\_()}函数之后，会运行汇编指令\code{int}，这时才
+  会进行真正的系统调用。\code{int}在运行时，会调用\code{raise\_intr()}函数，之后
+  在\code{raise\_intr()}里面，会在中断向量表中进行查找，找到入口之后执行。系统
+  调用的入口为\code{\_\_am\_vecsys}，在\file{nexus-am/am/src/x86/nemu/trap.S}
+  中定义。紧接着会调用\code{\_\_am\_asm\_trap}，然后调用\code{\_\_am\_irq\_handle}，
+  在\code{\_\_am\_irq\_handle}中，会将其封装成\code{\_EVENT\_SYSCALL}事件，并
+  转发给nanos-lite处理。nanos-lite在\code{do\_syscall()}函数中接收到该事件，根据
+  系统调用号知道是\code{read}系统调用，然后会执行\code{sys\_read()}帮助函数，在该
+  函数里会调用真正的文件系统操作函数\code{fs\_read()}，之后文件系统才会进行真正
+  的文件读取操作。
+
+  2. \code{NDL\_DrawRect()}函数的执行与前者有些相似。首先调用了libndl库，在该库中
+  会打开设备文件\code{/dev/fb}和\code{/dev/fbsync}，在接收到该函数调用后会向\code{/dev/fb}
+  设备文件中写入，写入的过程和前者一样，最终到达了文件系统的\code{fs\_write()}函数。
+  在该函数中，判断出要写的文件是\code{/dev/fb}设备文件之后，会调用\code{fb\_write()}
+  帮助函数，之后会调用\code{draw\_rect()}函数，该函数位于\file{nexus-am/libs/klib/src/io.c}
+  中，在函数内会调用\code{\_io\_write()}函数，该函数是IOE的一部分。在\code{\_io\_write()}
+  函数中，会转发给\code{\_\_am\_video\_write()}函数，位于\file{nexus-am/am/src/nemu-common/nemu-video.c}
+  文件中。在该函数中会执行\code{out}汇编指令，将数据传送给vga设备中。vga设备在
+  \file{nemu/src/device/io/vga.c}中定义，接收到数据后会保存在定义的显存中，当之后
+  NDL库向\code{/dev/fbsync}设备文件中写入时，vga设备最终会调用SDL库来更新画面。
+
+\vspace{4em}
+\noindent\centering{\zihao{0} 完}

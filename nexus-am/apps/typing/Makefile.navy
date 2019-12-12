@@ -1,0 +1,5 @@
+NAME = typing-am
+APP = /home/qyzhang/Projects/ics-2019/nexus-am/apps/typing/build/typing-x86-navy
+OBJS = /home/qyzhang/Projects/ics-2019/nexus-am/apps/typing/build/x86-navy//game.o /home/qyzhang/Projects/ics-2019/nexus-am/apps/typing/build/x86-navy//draw.o /home/qyzhang/Projects/ics-2019/nexus-am/apps/typing/build/x86-navy//font.o /home/qyzhang/Projects/ics-2019/nexus-am/apps/typing/build/x86-navy//keyboard.o /home/qyzhang/Projects/ics-2019/nexus-am/am/build/am-x86-navy.a /home/qyzhang/Projects/ics-2019/nexus-am/libs/klib/build/klib-x86-navy.a
+LIBS += libndl
+include /home/qyzhang/Projects/ics-2019/navy-apps/Makefile.app

@@ -1,0 +1,5 @@
+NAME = slider-am
+APP = /home/qyzhang/Projects/ics-2019/nexus-am/apps/slider/build/slider-x86-navy
+OBJS = /home/qyzhang/Projects/ics-2019/nexus-am/apps/slider/build/x86-navy//main.o /home/qyzhang/Projects/ics-2019/nexus-am/apps/slider/build/x86-navy//image.o /home/qyzhang/Projects/ics-2019/nexus-am/am/build/am-x86-navy.a /home/qyzhang/Projects/ics-2019/nexus-am/libs/klib/build/klib-x86-navy.a
+LIBS += libndl
+include /home/qyzhang/Projects/ics-2019/navy-apps/Makefile.app

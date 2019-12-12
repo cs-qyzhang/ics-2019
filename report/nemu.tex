@@ -244,7 +244,7 @@ prefix域，所以编码\code{0x66 0x50}就代表着\code{PUSH AX}，即将操�
 域代表了内存寻址时的偏移，要和\emph{modr/m}以及\emph{sib}配合使用。而\emph{immediate}
 域则是代表了立即数，是否存在该域要看具体的\emph{opcode}。
 
-\subsection{\arch 指令译码与执行设计}
+\subsection{\arch 指令译码与执行设计}\label{sec:x86-instr-format}
 在大致知道了\arch 指令的编码方式之后，我们就能够进行译码的实现。再次回到\code{isa\_exec()}
 函数，在函数体中首先在\pc 处取出一个字节，这时我们大概能够推断出取出的这一个字节
 是\emph{opcode}(当然也有可能是\emph{opcode}前面的那些域，我们后面再来说明如果是

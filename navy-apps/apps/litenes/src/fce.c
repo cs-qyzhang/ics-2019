@@ -181,7 +181,7 @@ void _ioe_init();
 int main(int argc, char *argv[]) {
   const char *fname;
   if (argc < 2) {
-    fname = "/share/games/nes/kungfu.nes";
+    fname = "/share/games/nes/mario.nes";
     fprintf(stderr, "No ROM specified. Deafult to %s\n", fname);
   } else {
     fname = argv[1];

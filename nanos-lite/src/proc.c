@@ -20,6 +20,7 @@ void hello_fun(void *arg) {
 
 void run_proc(PCB *pcb) {
   extern void _urun(_AddressSpace *as, void (*entry)());
+  current = pcb;
   _urun(&pcb->as, (void (*)())pcb->cp->eip);
 }
 
@@ -28,10 +29,7 @@ void init_proc() {
   extern void context_uload(PCB *pcb, const char *filename);
 
   //context_kload(&pcb[0], (void *)hello_fun);
-
   //switch_boot_pcb();
-  current = &pcb[0];
-  fg_pcb = &pcb[1];
 
   Log("Initializing processes...");
 
@@ -41,12 +39,14 @@ void init_proc() {
   context_uload(&pcb[1], "/bin/pal");
   context_uload(&pcb[2], "/bin/pal");
   context_uload(&pcb[3], "/bin/pal");
-  run_proc(&pcb[0]);
+
+  fg_pcb = &pcb[1];
+  run_proc(&pcb[1]);
 }
 
 _Context* schedule(_Context *prev) {
   static uint32_t cnt = 0;
-  const int fg_nice = 2000;
+  const int fg_nice = 50;
 
   current->cp = prev;
   current = (cnt++ % fg_nice) ? fg_pcb : &pcb[0];

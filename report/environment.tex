@@ -1,10 +1,10 @@
 \chapter{开发环境}
 \section{硬件配置}
-
+\hustfigure{figure/neofetch.png}{\texttt{neofetch}命令输出}{fig:neofetch}
 
 \section{软件配置}
 \begin{luacode}
 env = require("sysenv")
-local cmds = {"gcc", "nvim", "ld", "python"}
+local cmds = {"gcc", "nvim", "python"}
 env.print_sysversion(cmds)
 \end{luacode}
